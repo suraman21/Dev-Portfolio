@@ -1,0 +1,348 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   SUNLIT KINETIC ATELIER — LUXURY LIGHT-MODE DUAL-TIER NEON DESIGN SYSTEM
+   Warm Alabaster Porcelain + Electric Neon Teal & Electric Neon Orange
+   ========================================================================== */
+
+:root {
+  /* Mineral Light Surfaces (75% visual dominance) */
+  --bg-alabaster: #f7f5f0;
+  --surface-porcelain: #ffffff;
+  --surface-stone: #efece5;
+  --surface-stone-deep: #e6e1d7;
+  --border-mineral: #dfdbd2;
+  --border-subtle: rgba(14, 23, 26, 0.08);
+
+  /* Editorial Obsidian & Slate Ink (15% visual dominance — AAA contrast) */
+  --ink-obsidian: #0e171a;
+  --ink-slate: #445358;
+  --ink-muted: #5f6f75;
+
+  /* Dual-Tier Electric Teal (7% structural precision) */
+  --neon-teal: #00e5cc;
+  --neon-teal-bright: #19f5de;
+  --teal-deep: #086e68; /* ~5.7:1 AA+ on Alabaster */
+  --teal-mist: #e1faf6;
+
+  /* Dual-Tier Electric Orange (3% Von Restorff focal energy) */
+  --neon-orange: #ff5a1f;
+  --neon-orange-bright: #ff6e35;
+  --orange-lacquer: #c43c00; /* ~5.4:1 AA+ on Alabaster & white text */
+  --orange-halo: #fff0e7;
+
+  /* Selective Obsidian Micro-Island (100% pure neon shine) */
+  --surface-obsidian: #0d1619;
+  --surface-obsidian-glass: rgba(13, 22, 25, 0.9);
+
+  /* Continuous Fluid Typography (320px phone -> 2560px desktop) */
+  --text-hero: clamp(2.5rem, 1.35rem + 4.4vw, 6.4rem);
+  --text-h2: clamp(1.9rem, 1.15rem + 2.6vw, 4.1rem);
+  --text-h3: clamp(1.35rem, 1rem + 1.25vw, 2.25rem);
+  --text-body-lg: clamp(1.05rem, 0.96rem + 0.35vw, 1.28rem);
+  --text-body: clamp(0.975rem, 0.93rem + 0.18vw, 1.08rem);
+  --text-mono: clamp(0.7rem, 0.68rem + 0.12vw, 0.8rem);
+
+  /* Spatial Rhythm & Safe Zones */
+  --safe-x: clamp(1.25rem, 4vw, 4.5rem);
+  --safe-y: clamp(1rem, 2.5vh, 2.5rem);
+  --section-space: clamp(4.5rem, 3.2rem + 5.5vw, 9rem);
+  --max-shell: 1520px;
+
+  /* Typography Variables (self-hosted @fontsource woff2) */
+  --font-display: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
+  --font-editorial: "Instrument Serif", Georgia, serif;
+  --font-code: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
+}
+
+/* Wide-gamut Display-P3 vibrancy on modern Apple / OLED / 4K panels */
+@supports (color: oklch(0.7 0.2 36)) {
+  :root {
+    --bg-alabaster: oklch(0.968 0.008 85);
+    --surface-stone: oklch(0.94 0.011 85);
+    --border-mineral: oklch(0.89 0.012 85);
+    --ink-obsidian: oklch(0.19 0.015 210);
+    --neon-teal: oklch(0.845 0.168 178);
+    --teal-deep: oklch(0.485 0.098 182);
+    --neon-orange: oklch(0.68 0.225 36);
+    --orange-lacquer: oklch(0.535 0.195 36);
+  }
+}
+
+/* ==========================================================================
+   4K / SMART TV 10-FOOT UI MODE (Auto-detected or Toggled via 'T')
+   - Enforces 5% overscan safe zone
+   - Scales body & headers for 10-foot legibility (no hairline thin weights)
+   - Unmistakable dual neon focus rings (zero hover dependency)
+   ========================================================================== */
+html[data-cinema-tv="true"],
+html[data-cinema-tv="true"] body {
+  --safe-x: max(5vw, 88px);
+  --safe-y: max(5vh, 52px);
+  --text-hero: clamp(3.6rem, 4.4vw, 7.2rem);
+  --text-h2: clamp(2.6rem, 3vw, 4.8rem);
+  --text-h3: clamp(1.8rem, 2vw, 2.8rem);
+  --text-body-lg: clamp(1.35rem, 1.45vw, 1.85rem);
+  --text-body: clamp(1.25rem, 1.3vw, 1.65rem);
+  --text-mono: clamp(0.9rem, 0.95vw, 1.15rem);
+  --max-shell: 1760px;
+}
+
+@media (min-width: 2560px) and (hover: none) {
+  :root {
+    --safe-x: max(5vw, 96px);
+    --safe-y: max(5vh, 54px);
+    --text-body: clamp(1.5rem, 1.5vw, 2.1rem);
+  }
+}
+
+/* Base Document Styling */
+* {
+  box-sizing: border-box;
+}
+
+html {
+  background-color: var(--bg-alabaster);
+  color: var(--ink-obsidian);
+  font-family: var(--font-display);
+  scroll-behavior: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+body {
+  margin: 0;
+  min-height: 100svh;
+  background-color: var(--bg-alabaster);
+  color: var(--ink-obsidian);
+  overflow-x: clip;
+  line-height: 1.55;
+}
+
+::selection {
+  background: rgba(0, 229, 204, 0.35);
+  color: var(--ink-obsidian);
+}
+
+/* Editorial & Typographic Utility Classes */
+.font-editorial {
+  font-family: var(--font-editorial);
+}
+
+.font-mono-tech {
+  font-family: var(--font-code);
+  font-size: var(--text-mono);
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.text-hero {
+  font-size: var(--text-hero);
+  line-height: 0.98;
+  letter-spacing: -0.036em;
+}
+
+.text-h2 {
+  font-size: var(--text-h2);
+  line-height: 1.04;
+  letter-spacing: -0.032em;
+}
+
+.text-h3 {
+  font-size: var(--text-h3);
+  line-height: 1.14;
+  letter-spacing: -0.024em;
+}
+
+.text-body-lg {
+  font-size: var(--text-body-lg);
+  line-height: 1.62;
+}
+
+.text-body {
+  font-size: var(--text-body);
+  line-height: 1.62;
+}
+
+.shell {
+  width: 100%;
+  max-width: var(--max-shell);
+  margin-inline: auto;
+  padding-inline: var(--safe-x);
+}
+
+/* ==========================================================================
+   LUXURY MATERIALITY: FROSTED PORCELAIN GLASS, DICHROIC GLOW & PAPER GRAIN
+   ========================================================================== */
+.porcelain-glass {
+  background: linear-gradient(
+    140deg,
+    rgba(255, 255, 255, 0.86) 0%,
+    rgba(247, 245, 240, 0.72) 100%
+  );
+  backdrop-filter: blur(20px) saturate(165%);
+  -webkit-backdrop-filter: blur(20px) saturate(165%);
+  border: 1px solid rgba(255, 255, 255, 0.92);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 1px 2px rgba(14, 23, 26, 0.04),
+    0 18px 42px -18px rgba(14, 23, 26, 0.09);
+}
+
+.porcelain-card {
+  position: relative;
+  background: linear-gradient(160deg, #ffffff 0%, #faf8f4 100%);
+  border: 1px solid var(--border-mineral);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 10px 30px -16px rgba(14, 23, 26, 0.08);
+  transition:
+    transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.3s ease,
+    box-shadow 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.porcelain-card:hover {
+  border-color: rgba(0, 229, 204, 0.55);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 1),
+    0 24px 52px -18px rgba(0, 229, 204, 0.16),
+    0 14px 30px -16px rgba(255, 90, 31, 0.12);
+}
+
+.obsidian-island {
+  background: var(--surface-obsidian-glass);
+  backdrop-filter: blur(18px) saturate(150%);
+  -webkit-backdrop-filter: blur(18px) saturate(150%);
+  color: #f7f5f0;
+  border: 1px solid rgba(0, 229, 204, 0.22);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.09),
+    0 22px 48px -18px rgba(13, 22, 25, 0.45);
+}
+
+/* Light-Mode Dichroic Neon Border Shimmer */
+.dichroic-ring {
+  position: relative;
+}
+.dichroic-ring::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    130deg,
+    rgba(0, 229, 204, 0.85) 0%,
+    rgba(223, 219, 210, 0.3) 48%,
+    rgba(255, 90, 31, 0.85) 100%
+  );
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+/* Archival Paper Grain Overlay (Eliminates flat plastic CSS feel) */
+.film-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  pointer-events: none;
+  opacity: 0.026;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Ambient Sunlit Dichroic Aura (Very restrained, luxury light-mode bounce) */
+.sunlit-aura {
+  background:
+    radial-gradient(
+      48% 42% at 80% 18%,
+      rgba(0, 229, 204, 0.14) 0%,
+      rgba(0, 229, 204, 0) 70%
+    ),
+    radial-gradient(
+      42% 38% at 18% 78%,
+      rgba(255, 90, 31, 0.11) 0%,
+      rgba(255, 90, 31, 0) 70%
+    ),
+    var(--bg-alabaster);
+}
+
+/* Swiss Container Queries for Modular Cards */
+.cq-shell {
+  container-type: inline-size;
+}
+
+@container (min-width: 680px) {
+  .cq-split-card {
+    display: grid;
+    grid-template-columns: 1.15fr 1fr;
+    gap: 2.25rem;
+    align-items: center;
+  }
+}
+
+/* ==========================================================================
+   FOCUS ACCESSIBILITY & 10-FOOT TV SPATIAL FOCUS RINGS
+   ========================================================================== */
+:focus-visible {
+  outline: 2px solid var(--orange-lacquer);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+html[data-cinema-tv="true"] :focus-visible,
+html[data-cinema-tv="true"] [data-tv-focus="true"]:focus {
+  outline: 4px solid var(--neon-orange) !important;
+  outline-offset: 6px;
+  box-shadow:
+    0 0 0 8px rgba(0, 229, 204, 0.35),
+    0 24px 60px -10px rgba(255, 90, 31, 0.3) !important;
+  transform: scale(1.028);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+
+/* Smooth horizontal snap utility for mobile touch reels */
+.touch-reel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.touch-reel::-webkit-scrollbar {
+  display: none;
+}
+
+/* Neon Status Pulse */
+@keyframes pulse-neon {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(0, 229, 204, 0.65);
+    opacity: 1;
+  }
+  50% {
+    box-shadow: 0 0 0 7px rgba(0, 229, 204, 0);
+    opacity: 0.85;
+  }
+}
+
+.pulse-teal {
+  animation: pulse-neon 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Reduced Motion Respect */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
