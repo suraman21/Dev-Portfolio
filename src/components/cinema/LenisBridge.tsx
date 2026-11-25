@@ -5,35 +5,28 @@ import { usePathname } from "next/navigation";
 import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
-import { useCinema } from "./CinemaProvider";
 
 export function LenisBridge() {
-  const { tvMode, scrollRef } = useCinema();
   const pathname = usePathname();
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // Disable smooth scroll hijacking in TV 10-foot mode or reduced-motion preference
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (tvMode || reducedMotion) {
+    if (reducedMotion) {
       ScrollTrigger.refresh();
       return;
     }
 
     const lenis = new Lenis({
-      duration: 1.08,
+      duration: 1.0,
       easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
       smoothWheel: true,
-      touchMultiplier: 1.35,
+      touchMultiplier: 1.3,
       autoRaf: false,
     });
 
-    lenis.on("scroll", (e: { progress: number; velocity: number }) => {
-      scrollRef.current.progress = e.progress || 0;
-      scrollRef.current.velocity = e.velocity || 0;
-      ScrollTrigger.update();
-    });
+    lenis.on("scroll", ScrollTrigger.update);
 
     const raf = (time: number) => {
       lenis.raf(time * 1000);
@@ -42,35 +35,29 @@ export function LenisBridge() {
     gsap.ticker.add(raf);
     gsap.ticker.lagSmoothing(0);
 
-    // Refresh ScrollTrigger cleanly after fonts settle
-    if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(() => {
-        ScrollTrigger.refresh();
-      });
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(() => ScrollTrigger.refresh());
     }
 
-    let resizeTimer: ReturnType<typeof setTimeout>;
-    const handleResize = () => {
-      clearTimeout(resizeTimer);
-      resizeTimer = setTimeout(() => ScrollTrigger.refresh(), 240);
+    let timer: ReturnType<typeof setTimeout>;
+    const onResize = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => ScrollTrigger.refresh(), 220);
     };
-    window.addEventListener("resize", handleResize);
+    window.addEventListener("resize", onResize);
 
     return () => {
-      clearTimeout(resizeTimer);
-      window.removeEventListener("resize", handleResize);
+      clearTimeout(timer);
+      window.removeEventListener("resize", onResize);
       gsap.ticker.remove(raf);
       lenis.destroy();
     };
-  }, [tvMode, scrollRef]);
+  }, []);
 
-  // Reset scroll smoothly to top on route change
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-    const timer = setTimeout(() => {
-      ScrollTrigger.refresh();
-    }, 120);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => ScrollTrigger.refresh(), 100);
+    return () => clearTimeout(t);
   }, [pathname]);
 
   return null;

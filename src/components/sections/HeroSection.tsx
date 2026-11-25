@@ -2,191 +2,148 @@
 
 import { useState } from "react";
 import { motion } from "framer-motion";
-import {
-  ArrowDown,
-  ArrowUpRight,
-  Expand,
-  Minimize2,
-  Sparkles,
-} from "lucide-react";
+import { ArrowDown, ArrowUpRight, Layers, Minimize2 } from "lucide-react";
 import { siteConfig } from "@/data/site";
 import { SceneCanvas } from "@/components/3d/SceneCanvas";
-import { HeroPrismEngine } from "@/components/3d/HeroPrismEngine";
+import { HeroWorkspace3D } from "@/components/3d/HeroWorkspace3D";
 import { MagneticButton } from "@/components/ui/MagneticButton";
-import { useCinema } from "@/components/cinema/CinemaProvider";
-import { foley } from "@/lib/sound";
 
 export function HeroSection() {
-  const [exploded, setExploded] = useState(false);
-  const { setCursorLabel, soundEnabled } = useCinema();
-
-  const toggleExplode = () => {
-    foley.playDetent(soundEnabled);
-    setExploded((e) => !e);
-  };
+  const [layeredView, setLayeredView] = useState(false);
 
   return (
     <section
-      id="act-1"
-      aria-label="Act I — The Thesis Hero"
-      className="relative min-h-[100svh] sunlit-aura pt-28 pb-14 md:pt-32 md:pb-20 flex flex-col justify-between overflow-hidden"
+      aria-label="Introduction"
+      className="relative min-h-[100svh] sunlit-aura pt-28 pb-14 md:pt-34 md:pb-18 flex flex-col justify-between overflow-hidden"
     >
-      {/* Subtle Swiss Architectural Hairline Framing */}
-      <div
-        aria-hidden="true"
-        className="pointer-events-none absolute inset-x-0 top-24 h-px bg-gradient-to-r from-transparent via-[var(--border-mineral)] to-transparent"
-      />
-
       <div className="shell my-auto">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-8 xl:gap-12 items-center">
-          {/* Left Editorial Thesis (6-Second Recruiter Clarity + Anchoring Effect #01) */}
-          <div className="lg:col-span-7 space-y-6 md:space-y-7">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 items-center">
+          {/* Left: Clear, High-Trust Senior Positioning */}
+          <div className="lg:col-span-6 space-y-6">
             <motion.div
-              initial={{ opacity: 0, y: 14 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, ease: [0.16, 1, 0.3, 1] }}
-              className="inline-flex flex-wrap items-center gap-2.5 rounded-full border border-[var(--border-mineral)] bg-white/85 px-4 py-1.5 backdrop-blur-md shadow-[0_6px_20px_-12px_rgba(14,23,26,0.12)]"
+              transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+              className="inline-flex items-center gap-2.5 rounded-full border border-[var(--border-mineral)] bg-white/90 px-4 py-1.5 shadow-[0_4px_18px_-10px_rgba(15,23,26,0.12)]"
             >
               <span className="pulse-teal h-2 w-2 rounded-full bg-[var(--neon-teal)]" />
-              <span className="font-mono-tech text-[10.5px] font-semibold text-[var(--teal-deep)]">
-                ACT 01 · SENIOR SOFTWARE ENGINEER &amp; WEB ARCHITECT
+              <span className="text-xs font-semibold text-[var(--teal-deep)]">
+                {siteConfig.role}
               </span>
             </motion.div>
 
             <motion.h1
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.72, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.65, delay: 0.06, ease: [0.16, 1, 0.3, 1] }}
               className="text-hero font-bold text-[var(--ink-obsidian)]"
             >
-              Engineering Software{" "}
-              <span className="block">
-                That Feels Like{" "}
-                <span className="font-editorial italic font-normal text-[var(--orange-lacquer)]">
-                  Cinema.
-                </span>
+              I build fast SaaS products &amp;{" "}
+              <span className="font-editorial italic font-normal text-[var(--orange-lacquer)]">
+                luxury websites.
               </span>
             </motion.h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.68, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-              className="text-body-lg max-w-[56ch] text-[var(--ink-slate)]"
+              transition={{ duration: 0.62, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
+              className="text-body-lg max-w-[52ch] text-[var(--ink-slate)]"
             >
-              I architect resilient full-stack SaaS platforms and luxury interactive web
-              experiences — uniting distributed backend discipline, behavioral UX psychology, and
-              sunlit 60–120fps 3D storytelling across mobile, desktop, and 4K displays.
+              Hi, I&apos;m <strong className="text-[var(--ink-obsidian)]">{siteConfig.name}</strong>
+              . I help startups and growing companies turn complex ideas into fast, reliable
+              software and memorable web experiences that feel effortless on every screen.
             </motion.p>
 
-            {/* Primary & Secondary CTAs (Von Restorff Isolation on Electric Orange) */}
+            {/* Primary & Secondary Actions */}
             <motion.div
-              initial={{ opacity: 0, y: 18 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.68, delay: 0.24, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.62, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
               className="flex flex-wrap items-center gap-3.5 pt-1"
             >
-              <MagneticButton href="/work" variant="primary" cursorText="EXPLORE">
-                Explore Selected Works <ArrowUpRight className="h-4 w-4" />
+              <MagneticButton href="/work" variant="primary">
+                View Selected Work <ArrowUpRight className="h-4 w-4" />
               </MagneticButton>
-              <MagneticButton href="/contact" variant="teal" cursorText="BOOK">
-                Book a Technical Call
-              </MagneticButton>
-              <MagneticButton href="/lab" variant="porcelain" cursorText="PLAY LAB">
-                <Sparkles className="h-4 w-4 text-[var(--orange-lacquer)]" />
-                Enter 3D Lab
+              <MagneticButton href="/contact" variant="teal">
+                Start a Conversation
               </MagneticButton>
             </motion.div>
 
-            {/* 3 Headline Proof Anchors (Anchoring Effect — UX Law #01) */}
+            {/* 3 Simple, Credible Proof Stats */}
             <motion.div
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.72, delay: 0.32, ease: [0.16, 1, 0.3, 1] }}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-3.5 pt-3 max-w-2xl"
+              transition={{ duration: 0.65, delay: 0.28, ease: [0.16, 1, 0.3, 1] }}
+              className="grid grid-cols-3 gap-4 pt-4 border-t border-[var(--border-mineral)] max-w-xl"
             >
-              {siteConfig.heroAnchors.map((anchor, idx) => (
-                <div
-                  key={anchor.label}
-                  className="porcelain-card rounded-2xl p-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-[10px] uppercase tracking-widest text-[var(--ink-muted)]">
-                      {anchor.label}
-                    </span>
-                    <span
-                      className={`h-1.5 w-1.5 rounded-full ${
-                        idx === 2 ? "bg-[var(--neon-orange)]" : "bg-[var(--neon-teal)]"
-                      }`}
-                    />
+              {siteConfig.heroStats.map((stat, idx) => (
+                <div key={stat.label}>
+                  <div
+                    className={`text-xl sm:text-2xl font-bold tracking-tight ${
+                      idx === 2 ? "text-[var(--orange-lacquer)]" : "text-[var(--ink-obsidian)]"
+                    }`}
+                  >
+                    {stat.value}
                   </div>
-                  <div className="mt-1.5 text-2xl font-bold tracking-tight text-[var(--ink-obsidian)]">
-                    {anchor.value}
+                  <div className="mt-0.5 text-xs text-[var(--ink-slate)] leading-snug">
+                    {stat.label}
                   </div>
-                  <div className="mt-0.5 text-xs text-[var(--ink-slate)]">{anchor.detail}</div>
                 </div>
               ))}
             </motion.div>
           </div>
 
-          {/* Right Interactive 3D Hero Stage ("The Prism Chronometer") */}
+          {/* Right: ONE Signature Interactive 3D Centerpiece That Tells a Clear Story */}
           <motion.div
-            initial={{ opacity: 0, scale: 0.96 }}
+            initial={{ opacity: 0, scale: 0.97 }}
             animate={{ opacity: 1, scale: 1 }}
-            transition={{ duration: 0.85, delay: 0.14, ease: [0.16, 1, 0.3, 1] }}
-            className="lg:col-span-5"
+            transition={{ duration: 0.8, delay: 0.12, ease: [0.16, 1, 0.3, 1] }}
+            className="lg:col-span-6"
           >
-            <div
-              onMouseEnter={() => setCursorLabel(exploded ? "ASSEMBLE 3D" : "DRAG / CLICK 3D")}
-              onMouseLeave={() => setCursorLabel(null)}
-              className="porcelain-glass dichroic-ring relative h-[390px] sm:h-[460px] lg:h-[550px] xl:h-[600px] w-full overflow-hidden rounded-[36px]"
-            >
-              {/* Top Minimal Telemetry Strip inside 3D Frame */}
+            <div className="porcelain-glass dichroic-ring relative h-[360px] sm:h-[440px] lg:h-[520px] w-full overflow-hidden rounded-[32px]">
+              {/* Clean Layer Switch Button */}
               <div className="pointer-events-none absolute left-4 right-4 top-4 z-10 flex items-center justify-between">
-                <div className="obsidian-island rounded-full px-3.5 py-1.5 flex items-center gap-2">
-                  <span className="h-1.5 w-1.5 rounded-full bg-[var(--neon-teal)]" />
-                  <span className="font-mono text-[10px] tracking-wider text-[#F7F5F0]">
-                    PRISM CHRONOMETER · LIVE PBR
-                  </span>
-                </div>
+                <span className="rounded-full bg-white/90 border border-[var(--border-mineral)] px-3.5 py-1.5 text-xs font-medium text-[var(--ink-slate)]">
+                  {layeredView ? "Full-Stack Layers Separated" : "Interactive 3D Product Model"}
+                </span>
                 <button
                   type="button"
-                  onClick={toggleExplode}
-                  data-tv-focus="true"
-                  className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full border border-[var(--border-mineral)] bg-white/90 px-3.5 py-1.5 font-mono text-[10.5px] font-semibold text-[var(--ink-obsidian)] shadow-sm transition-all hover:border-[var(--neon-orange)] hover:text-[var(--orange-lacquer)] cursor-pointer"
+                  onClick={() => setLayeredView((v) => !v)}
+                  className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-[var(--ink-obsidian)] px-3.5 py-1.5 text-xs font-semibold text-[#F7F5F0] shadow-sm transition-transform hover:scale-[1.03] cursor-pointer"
                 >
-                  {exploded ? (
+                  {layeredView ? (
                     <>
-                      <Minimize2 className="h-3.5 w-3.5" /> Assemble
+                      <Minimize2 className="h-3.5 w-3.5 text-[var(--neon-teal)]" /> Unified View
                     </>
                   ) : (
                     <>
-                      <Expand className="h-3.5 w-3.5" /> Explode Core
+                      <Layers className="h-3.5 w-3.5 text-[var(--neon-orange)]" /> See Layers
                     </>
                   )}
                 </button>
               </div>
 
               <SceneCanvas
-                cameraPosition={[0, 0.3, 5.2]}
-                fov={38}
-                fallbackLabel="PRISM CHRONOMETER"
+                cameraPosition={[0, 0.18, 5.1]}
+                fov={36}
+                fallbackLabel="INTERACTIVE PRODUCT STACK"
               >
-                <HeroPrismEngine exploded={exploded} onToggleExplode={toggleExplode} />
+                <HeroWorkspace3D
+                  layeredView={layeredView}
+                  onToggleLayers={() => setLayeredView((v) => !v)}
+                />
               </SceneCanvas>
 
-              {/* Bottom Interactive Caption Telling the 3D Story */}
-              <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between gap-3 rounded-2xl bg-white/88 px-4 py-3 backdrop-blur-md border border-[var(--border-mineral)]/85">
-                <div className="min-w-0">
-                  <div className="font-mono text-[10px] uppercase tracking-widest text-[var(--teal-deep)]">
-                    {exploded ? "X-RAY BLUEPRINT · EXPLODED" : "INTERACTIVE SCULPTURE · DRAG OR CLICK"}
-                  </div>
-                  <div className="truncate text-xs font-medium text-[var(--ink-obsidian)]">
-                    Teal conduits = distributed flow · Orange nucleus = decisive UX craft
-                  </div>
-                </div>
-                <span className="shrink-0 font-mono text-[10px] font-bold text-[var(--orange-lacquer)]">
-                  60 FPS
+              {/* Simple Plain-English Caption */}
+              <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between rounded-2xl bg-white/90 px-4 py-2.5 backdrop-blur-md border border-[var(--border-mineral)]/80">
+                <span className="text-xs font-medium text-[var(--ink-obsidian)]">
+                  {layeredView
+                    ? "Backend APIs + Web Interface + Floating UX — built as one system"
+                    : "Drag gently to rotate · Click to inspect the full-stack layers"}
+                </span>
+                <span className="hidden sm:inline text-[11px] font-semibold text-[var(--teal-deep)]">
+                  Interactive
                 </span>
               </div>
             </div>
@@ -194,19 +151,19 @@ export function HeroSection() {
         </div>
       </div>
 
-      {/* Scroll Continuity Cue into Act II Sticky Multi-Slide */}
+      {/* Subtle Scroll Cue */}
       <div className="shell mt-10 flex items-center justify-between">
         <a
-          href="#act-2"
-          className="group inline-flex items-center gap-2.5 font-mono text-[11px] uppercase tracking-widest text-[var(--ink-slate)] hover:text-[var(--ink-obsidian)]"
+          href="#how-i-build"
+          className="group inline-flex items-center gap-2.5 text-xs font-semibold text-[var(--ink-slate)] hover:text-[var(--ink-obsidian)]"
         >
-          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border-mineral)] bg-white transition-transform group-hover:translate-y-1">
+          <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border-mineral)] bg-white transition-transform group-hover:translate-y-0.5">
             <ArrowDown className="h-3.5 w-3.5 text-[var(--orange-lacquer)]" />
           </span>
-          <span>Scroll into Act 02 · Sticky Architecture Strata</span>
+          <span>Scroll to see how I build</span>
         </a>
-        <span className="hidden md:inline font-mono text-[11px] text-[var(--ink-muted)]">
-          PRESS [⌘K] COMMAND · [T] 4K TV MODE · [X] X-RAY GRID
+        <span className="hidden md:inline text-xs text-[var(--ink-muted)]">
+          {siteConfig.location}
         </span>
       </div>
     </section>
