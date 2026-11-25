@@ -16,7 +16,7 @@ export async function generateMetadata({
   if (!project) return { title: "Case Study Not Found" };
   return {
     title: `${project.title} — Case Study`,
-    description: project.oneLiner,
+    description: project.tagline,
   };
 }
 

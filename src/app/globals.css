@@ -1,102 +1,79 @@
 @import "tailwindcss";
 
 /* ==========================================================================
-   SUNLIT KINETIC ATELIER — LUXURY LIGHT-MODE DUAL-TIER NEON DESIGN SYSTEM
+   LUXURY LIGHT-MODE SAAS DESIGN SYSTEM
    Warm Alabaster Porcelain + Electric Neon Teal & Electric Neon Orange
+   Automatic 320px Mobile -> Laptop -> Desktop -> 4K/TV Fluid Scaling
    ========================================================================== */
 
 :root {
-  /* Mineral Light Surfaces (75% visual dominance) */
+  /* Warm Architectural Light Surfaces */
   --bg-alabaster: #f7f5f0;
   --surface-porcelain: #ffffff;
   --surface-stone: #efece5;
-  --surface-stone-deep: #e6e1d7;
-  --border-mineral: #dfdbd2;
-  --border-subtle: rgba(14, 23, 26, 0.08);
+  --surface-stone-deep: #e5e0d5;
+  --border-mineral: #e2ded5;
 
-  /* Editorial Obsidian & Slate Ink (15% visual dominance — AAA contrast) */
-  --ink-obsidian: #0e171a;
-  --ink-slate: #445358;
-  --ink-muted: #5f6f75;
+  /* Crisp High-Contrast Ink */
+  --ink-obsidian: #0f171a;
+  --ink-slate: #47555b;
+  --ink-muted: #68777d;
 
-  /* Dual-Tier Electric Teal (7% structural precision) */
+  /* Dual-Tier Neon Teal (Optical Accent + WCAG Accessible Ink) */
   --neon-teal: #00e5cc;
-  --neon-teal-bright: #19f5de;
-  --teal-deep: #086e68; /* ~5.7:1 AA+ on Alabaster */
-  --teal-mist: #e1faf6;
+  --teal-deep: #086e68;
+  --teal-mist: #e3faf7;
 
-  /* Dual-Tier Electric Orange (3% Von Restorff focal energy) */
+  /* Dual-Tier Neon Orange (Optical Accent + WCAG Accessible Ink) */
   --neon-orange: #ff5a1f;
-  --neon-orange-bright: #ff6e35;
-  --orange-lacquer: #c43c00; /* ~5.4:1 AA+ on Alabaster & white text */
-  --orange-halo: #fff0e7;
+  --orange-lacquer: #c43c00;
+  --orange-halo: #fff1e8;
 
-  /* Selective Obsidian Micro-Island (100% pure neon shine) */
-  --surface-obsidian: #0d1619;
-  --surface-obsidian-glass: rgba(13, 22, 25, 0.9);
+  /* Dark Glass Accent Surface (for subtle contrast highlights) */
+  --surface-obsidian: #0e171a;
 
-  /* Continuous Fluid Typography (320px phone -> 2560px desktop) */
-  --text-hero: clamp(2.5rem, 1.35rem + 4.4vw, 6.4rem);
-  --text-h2: clamp(1.9rem, 1.15rem + 2.6vw, 4.1rem);
-  --text-h3: clamp(1.35rem, 1rem + 1.25vw, 2.25rem);
-  --text-body-lg: clamp(1.05rem, 0.96rem + 0.35vw, 1.28rem);
-  --text-body: clamp(0.975rem, 0.93rem + 0.18vw, 1.08rem);
-  --text-mono: clamp(0.7rem, 0.68rem + 0.12vw, 0.8rem);
+  /* Continuous Fluid Typography (320px -> 2560px+) */
+  --text-hero: clamp(2.45rem, 1.3rem + 4vw, 5.4rem);
+  --text-h2: clamp(1.9rem, 1.2rem + 2.4vw, 3.6rem);
+  --text-h3: clamp(1.35rem, 1.05rem + 1.1vw, 2.05rem);
+  --text-body-lg: clamp(1.05rem, 0.98rem + 0.3vw, 1.24rem);
+  --text-body: clamp(0.975rem, 0.94rem + 0.16vw, 1.06rem);
 
-  /* Spatial Rhythm & Safe Zones */
-  --safe-x: clamp(1.25rem, 4vw, 4.5rem);
-  --safe-y: clamp(1rem, 2.5vh, 2.5rem);
-  --section-space: clamp(4.5rem, 3.2rem + 5.5vw, 9rem);
-  --max-shell: 1520px;
+  /* Automatic Safe Margins */
+  --safe-x: clamp(1.25rem, 4.2vw, 4.5rem);
+  --max-shell: 1400px;
 
-  /* Typography Variables (self-hosted @fontsource woff2) */
+  /* Self-Hosted Fonts */
   --font-display: "Plus Jakarta Sans", system-ui, -apple-system, sans-serif;
   --font-editorial: "Instrument Serif", Georgia, serif;
   --font-code: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
-/* Wide-gamut Display-P3 vibrancy on modern Apple / OLED / 4K panels */
 @supports (color: oklch(0.7 0.2 36)) {
   :root {
-    --bg-alabaster: oklch(0.968 0.008 85);
-    --surface-stone: oklch(0.94 0.011 85);
-    --border-mineral: oklch(0.89 0.012 85);
+    --bg-alabaster: oklch(0.97 0.007 85);
+    --surface-stone: oklch(0.942 0.01 85);
+    --border-mineral: oklch(0.9 0.01 85);
     --ink-obsidian: oklch(0.19 0.015 210);
-    --neon-teal: oklch(0.845 0.168 178);
+    --neon-teal: oklch(0.845 0.165 178);
     --teal-deep: oklch(0.485 0.098 182);
     --neon-orange: oklch(0.68 0.225 36);
     --orange-lacquer: oklch(0.535 0.195 36);
   }
 }
 
-/* ==========================================================================
-   4K / SMART TV 10-FOOT UI MODE (Auto-detected or Toggled via 'T')
-   - Enforces 5% overscan safe zone
-   - Scales body & headers for 10-foot legibility (no hairline thin weights)
-   - Unmistakable dual neon focus rings (zero hover dependency)
-   ========================================================================== */
-html[data-cinema-tv="true"],
-html[data-cinema-tv="true"] body {
-  --safe-x: max(5vw, 88px);
-  --safe-y: max(5vh, 52px);
-  --text-hero: clamp(3.6rem, 4.4vw, 7.2rem);
-  --text-h2: clamp(2.6rem, 3vw, 4.8rem);
-  --text-h3: clamp(1.8rem, 2vw, 2.8rem);
-  --text-body-lg: clamp(1.35rem, 1.45vw, 1.85rem);
-  --text-body: clamp(1.25rem, 1.3vw, 1.65rem);
-  --text-mono: clamp(0.9rem, 0.95vw, 1.15rem);
-  --max-shell: 1760px;
-}
-
-@media (min-width: 2560px) and (hover: none) {
+/* Automatic 4K / Smart TV 10-Foot Adaptation (Zero manual switches needed) */
+@media (min-width: 2400px) {
   :root {
     --safe-x: max(5vw, 96px);
-    --safe-y: max(5vh, 54px);
-    --text-body: clamp(1.5rem, 1.5vw, 2.1rem);
+    --max-shell: 1960px;
+    --text-hero: clamp(4.8rem, 4.2vw, 7.2rem);
+    --text-h2: clamp(3.2rem, 2.8vw, 4.8rem);
+    --text-body-lg: clamp(1.4rem, 1.25vw, 1.85rem);
+    --text-body: clamp(1.2rem, 1.1vw, 1.55rem);
   }
 }
 
-/* Base Document Styling */
 * {
   box-sizing: border-box;
 }
@@ -105,7 +82,6 @@ html {
   background-color: var(--bg-alabaster);
   color: var(--ink-obsidian);
   font-family: var(--font-display);
-  scroll-behavior: auto;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-rendering: optimizeLegibility;
@@ -117,52 +93,51 @@ body {
   background-color: var(--bg-alabaster);
   color: var(--ink-obsidian);
   overflow-x: clip;
-  line-height: 1.55;
+  line-height: 1.6;
 }
 
 ::selection {
-  background: rgba(0, 229, 204, 0.35);
+  background: rgba(0, 229, 204, 0.3);
   color: var(--ink-obsidian);
 }
 
-/* Editorial & Typographic Utility Classes */
 .font-editorial {
   font-family: var(--font-editorial);
 }
 
-.font-mono-tech {
+.font-mono-label {
   font-family: var(--font-code);
-  font-size: var(--text-mono);
-  letter-spacing: 0.11em;
+  font-size: 0.75rem;
+  letter-spacing: 0.09em;
   text-transform: uppercase;
 }
 
 .text-hero {
   font-size: var(--text-hero);
-  line-height: 0.98;
-  letter-spacing: -0.036em;
+  line-height: 1.02;
+  letter-spacing: -0.034em;
 }
 
 .text-h2 {
   font-size: var(--text-h2);
-  line-height: 1.04;
-  letter-spacing: -0.032em;
+  line-height: 1.08;
+  letter-spacing: -0.03em;
 }
 
 .text-h3 {
   font-size: var(--text-h3);
-  line-height: 1.14;
-  letter-spacing: -0.024em;
+  line-height: 1.18;
+  letter-spacing: -0.022em;
 }
 
 .text-body-lg {
   font-size: var(--text-body-lg);
-  line-height: 1.62;
+  line-height: 1.65;
 }
 
 .text-body {
   font-size: var(--text-body);
-  line-height: 1.62;
+  line-height: 1.65;
 }
 
 .shell {
@@ -172,57 +147,42 @@ body {
   padding-inline: var(--safe-x);
 }
 
-/* ==========================================================================
-   LUXURY MATERIALITY: FROSTED PORCELAIN GLASS, DICHROIC GLOW & PAPER GRAIN
-   ========================================================================== */
+/* Luxury Frosted Glass & Porcelain Surfaces */
 .porcelain-glass {
   background: linear-gradient(
-    140deg,
-    rgba(255, 255, 255, 0.86) 0%,
-    rgba(247, 245, 240, 0.72) 100%
+    145deg,
+    rgba(255, 255, 255, 0.88) 0%,
+    rgba(247, 245, 240, 0.76) 100%
   );
-  backdrop-filter: blur(20px) saturate(165%);
-  -webkit-backdrop-filter: blur(20px) saturate(165%);
+  backdrop-filter: blur(20px) saturate(160%);
+  -webkit-backdrop-filter: blur(20px) saturate(160%);
   border: 1px solid rgba(255, 255, 255, 0.92);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 1px 2px rgba(14, 23, 26, 0.04),
-    0 18px 42px -18px rgba(14, 23, 26, 0.09);
+    0 12px 32px -16px rgba(15, 23, 26, 0.09);
 }
 
 .porcelain-card {
   position: relative;
-  background: linear-gradient(160deg, #ffffff 0%, #faf8f4 100%);
+  background: linear-gradient(165deg, #ffffff 0%, #fbf9f5 100%);
   border: 1px solid var(--border-mineral);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.95),
-    0 10px 30px -16px rgba(14, 23, 26, 0.08);
+    0 10px 28px -16px rgba(15, 23, 26, 0.07);
   transition:
-    transform 0.38s cubic-bezier(0.16, 1, 0.3, 1),
-    border-color 0.3s ease,
-    box-shadow 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+    transform 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 0.28s ease,
+    box-shadow 0.36s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .porcelain-card:hover {
   border-color: rgba(0, 229, 204, 0.55);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 1),
-    0 24px 52px -18px rgba(0, 229, 204, 0.16),
-    0 14px 30px -16px rgba(255, 90, 31, 0.12);
+    0 24px 48px -20px rgba(0, 229, 204, 0.16),
+    0 12px 28px -16px rgba(255, 90, 31, 0.11);
 }
 
-.obsidian-island {
-  background: var(--surface-obsidian-glass);
-  backdrop-filter: blur(18px) saturate(150%);
-  -webkit-backdrop-filter: blur(18px) saturate(150%);
-  color: #f7f5f0;
-  border: 1px solid rgba(0, 229, 204, 0.22);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.09),
-    0 22px 48px -18px rgba(13, 22, 25, 0.45);
-}
-
-/* Light-Mode Dichroic Neon Border Shimmer */
 .dichroic-ring {
   position: relative;
 }
@@ -234,9 +194,9 @@ body {
   padding: 1px;
   background: linear-gradient(
     130deg,
-    rgba(0, 229, 204, 0.85) 0%,
-    rgba(223, 219, 210, 0.3) 48%,
-    rgba(255, 90, 31, 0.85) 100%
+    rgba(0, 229, 204, 0.72) 0%,
+    rgba(226, 222, 213, 0.3) 50%,
+    rgba(255, 90, 31, 0.72) 100%
   );
   -webkit-mask:
     linear-gradient(#fff 0 0) content-box,
@@ -246,67 +206,60 @@ body {
   pointer-events: none;
 }
 
-/* Archival Paper Grain Overlay (Eliminates flat plastic CSS feel) */
-.film-grain {
-  position: fixed;
-  inset: 0;
-  z-index: 90;
-  pointer-events: none;
-  opacity: 0.026;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-
-/* Ambient Sunlit Dichroic Aura (Very restrained, luxury light-mode bounce) */
 .sunlit-aura {
   background:
     radial-gradient(
-      48% 42% at 80% 18%,
+      45% 38% at 82% 16%,
       rgba(0, 229, 204, 0.14) 0%,
       rgba(0, 229, 204, 0) 70%
     ),
     radial-gradient(
-      42% 38% at 18% 78%,
-      rgba(255, 90, 31, 0.11) 0%,
+      40% 35% at 15% 78%,
+      rgba(255, 90, 31, 0.1) 0%,
       rgba(255, 90, 31, 0) 70%
     ),
     var(--bg-alabaster);
 }
 
-/* Swiss Container Queries for Modular Cards */
+/* Subtle paper texture for tactile luxury warmth */
+.paper-grain {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  pointer-events: none;
+  opacity: 0.02;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 240 240' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* Container queries for modular project cards */
 .cq-shell {
   container-type: inline-size;
 }
-
-@container (min-width: 680px) {
-  .cq-split-card {
+@container (min-width: 720px) {
+  .cq-split {
     display: grid;
-    grid-template-columns: 1.15fr 1fr;
-    gap: 2.25rem;
+    grid-template-columns: 1fr 1.1fr;
+    gap: 2.5rem;
     align-items: center;
   }
 }
 
-/* ==========================================================================
-   FOCUS ACCESSIBILITY & 10-FOOT TV SPATIAL FOCUS RINGS
-   ========================================================================== */
+/* Crisp Focus States (Desktop + Keyboard + Smart TV D-Pad) */
 :focus-visible {
-  outline: 2px solid var(--orange-lacquer);
-  outline-offset: 3px;
-  border-radius: 6px;
+  outline: 2.5px solid var(--neon-orange);
+  outline-offset: 4px;
+  border-radius: 10px;
 }
 
-html[data-cinema-tv="true"] :focus-visible,
-html[data-cinema-tv="true"] [data-tv-focus="true"]:focus {
-  outline: 4px solid var(--neon-orange) !important;
-  outline-offset: 6px;
-  box-shadow:
-    0 0 0 8px rgba(0, 229, 204, 0.35),
-    0 24px 60px -10px rgba(255, 90, 31, 0.3) !important;
-  transform: scale(1.028);
-  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+@media (min-width: 2400px) {
+  :focus-visible {
+    outline: 4px solid var(--neon-orange);
+    outline-offset: 6px;
+    box-shadow: 0 0 0 8px rgba(0, 229, 204, 0.3);
+  }
 }
 
-/* Smooth horizontal snap utility for mobile touch reels */
+/* Mobile native touch horizontal scroll rail */
 .touch-reel {
   display: flex;
   overflow-x: auto;
@@ -318,24 +271,19 @@ html[data-cinema-tv="true"] [data-tv-focus="true"]:focus {
   display: none;
 }
 
-/* Neon Status Pulse */
-@keyframes pulse-neon {
+@keyframes pulse-soft {
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(0, 229, 204, 0.65);
-    opacity: 1;
+    box-shadow: 0 0 0 0 rgba(0, 229, 204, 0.6);
   }
   50% {
     box-shadow: 0 0 0 7px rgba(0, 229, 204, 0);
-    opacity: 0.85;
   }
 }
-
 .pulse-teal {
-  animation: pulse-neon 2.4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse-soft 2.4s ease-in-out infinite;
 }
 
-/* Reduced Motion Respect */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

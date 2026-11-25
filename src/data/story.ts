@@ -1,129 +1,67 @@
-export interface ArchitectureStratum {
-  id: string;
-  index: string;
-  eyebrow: string;
+export interface BuildStep {
+  number: string;
+  label: string;
   title: string;
-  italicWord: string;
-  summary: string;
+  highlight: string;
+  description: string;
   accent: "teal" | "orange";
-  metrics: { label: string; value: string }[];
-  capabilities: string[];
-  codeProof: string;
-  layerIndex: number;
+  points: string[];
+  statValue: string;
+  statLabel: string;
+  visualType: "strategy" | "engineering" | "craft";
 }
 
-export const architectureStrata: ArchitectureStratum[] = [
+export const buildSteps: BuildStep[] = [
   {
-    id: "foundation",
-    index: "01",
-    eyebrow: "STRATUM 01 · DISTRIBUTED FOUNDATION",
-    title: "Resilient Cloud & Edge",
-    italicWord: "Infrastructure",
-    summary:
-      "Every luxurious interface starts below the surface. I architect multi-region APIs, event-driven state machines, and edge-cached data pipelines engineered for four-nines uptime and sub-40ms global p99 latency.",
+    number: "01",
+    label: "Step 01 · Product Clarity",
+    title: "Every great product starts with",
+    highlight: "clarity.",
+    description:
+      "Before writing a single line of code, I simplify complex business goals into clear user journeys. Visitors should understand what your product does and trust it within the first three seconds.",
     accent: "teal",
-    metrics: [
-      { label: "Target Availability", value: "99.99%" },
-      { label: "Edge p99 Budget", value: "< 38ms" },
-      { label: "Throughput Scale", value: "14M/min" },
+    points: [
+      "Clear information hierarchy rooted in real UX psychology",
+      "Simple, scannable flows that convert visitors into customers",
+      "Designed thoughtfully for phones, laptops, desktops, and large displays",
     ],
-    capabilities: [
-      "Distributed APIs (Go, Node.js, Rust)",
-      "PostgreSQL, ClickHouse & Redis Architecture",
-      "Zero-Downtime Migrations & Observability",
-      "Multi-Region Edge Caching & Security",
-    ],
-    codeProof: `// Deterministic Idempotent Edge Pipeline
-export async function executeEdgeTx(cmd: SignedCmd) {
-  return await ledger.atomic(cmd.idempotencyKey, {
-    isolation: "serializable",
-    edgeRevalidate: ["global-pops"],
-    p99BudgetMs: 38,
-  });
-}`,
-    layerIndex: 0,
+    statValue: "3 sec",
+    statLabel: "First-impression clarity target",
+    visualType: "strategy",
   },
   {
-    id: "engine",
-    index: "02",
-    eyebrow: "STRATUM 02 · APPLICATION ENGINE",
-    title: "Type-Safe Systems & Real-Time",
-    italicWord: "State",
-    summary:
-      "Complex SaaS workflows demand zero-jank data orchestration. I separate high-frequency telemetry and optimistic mutations from UI rendering so interfaces respond inside the 400ms Doherty Threshold even under heavy load.",
+    number: "02",
+    label: "Step 02 · Full-Stack Engineering",
+    title: "Built for real speed and",
+    highlight: "reliability.",
+    description:
+      "Luxury disappears the moment a site lags or breaks. I engineer clean full-stack architectures — resilient APIs, fast databases, strict TypeScript, and edge caching — so your product stays rock-solid as you scale.",
     accent: "teal",
-    metrics: [
-      { label: "Interaction to Paint", value: "< 80ms" },
-      { label: "Type Coverage", value: "100% Strict" },
-      { label: "Layout Shift (CLS)", value: "0.002" },
+    points: [
+      "Sub-second page loads and instant button feedback",
+      "Scalable backend APIs, databases, and clean TypeScript codebases",
+      "Accessible WCAG 2.2 contrast and keyboard support built in from day one",
     ],
-    capabilities: [
-      "Next.js App Router & React 19 RSC",
-      "CRDT Multiplayer & WebSocket Streams",
-      "WebWorkers & Binary Ring Buffers",
-      "Strict End-to-End TypeScript Contracts",
-    ],
-    codeProof: `// Zero-Rerender Frame Bridge (GSAP -> R3F)
-export const cinemaClock = {
-  progress: 0,
-  velocity: 0,
-  activeStratum: 0,
-}; // Mutated at 120Hz outside React reconciliation`,
-    layerIndex: 1,
+    statValue: "99.99%",
+    statLabel: "Production reliability standard",
+    visualType: "engineering",
   },
   {
-    id: "surface",
-    index: "03",
-    eyebrow: "STRATUM 03 · LUXURY DESIGN SYSTEMS",
-    title: "Swiss Precision & Tactile",
-    italicWord: "Interfaces",
-    summary:
-      "I engineer multi-viewport design systems grounded in behavioral UX psychology — fluid clamp() typography, native @container queries, WCAG 2.2 AA/AAA wide-gamut color tokens, and 1-foot mobile to 10-foot 4K TV spatial navigation.",
+    number: "03",
+    label: "Step 03 · Motion & Luxury Polish",
+    title: "Crafted with movement that feels",
+    highlight: "alive.",
+    description:
+      "The difference between good software and unforgettable software lives in the details — smooth scroll pacing, subtle tactile animations, warm lighting, and purposeful interactive 3D that elevates your brand without getting in the way.",
     accent: "orange",
-    metrics: [
-      { label: "Contrast Standard", value: "WCAG AAA" },
-      { label: "Viewport Range", value: "320px–4K" },
-      { label: "Component Reuse", value: "94% Tokenized" },
+    points: [
+      "Butter-smooth 60fps transitions and spring micro-interactions",
+      "Restrained, high-taste visual design that makes your brand look unmistakable",
+      "Purposeful interactive 3D moments that tell a story without slowing the page",
     ],
-    capabilities: [
-      "Tailwind v4 + Wide-Gamut oklch() Tokens",
-      "Fluid Typography & CSS Container Queries",
-      "10-Foot Smart TV Spatial Focus Navigation",
-      "Behavioral UX (Hick, Fitts, Peak-End, Flow)",
-    ],
-    codeProof: `/* Continuous 1-ft Mobile to 10-ft 4K Fluidity */
---text-hero: clamp(2.5rem, 1.35rem + 4.4vw, 6.4rem);
---neon-teal: oklch(0.845 0.168 178);
---neon-orange: oklch(0.68 0.225 36);`,
-    layerIndex: 2,
-  },
-  {
-    id: "cinema",
-    index: "04",
-    eyebrow: "STRATUM 04 · LIVING CINEMA & 3D",
-    title: "Interactive WebGL & Living",
-    italicWord: "Motion",
-    summary:
-      "Motion is meaning, never decoration. I combine GSAP ScrollTrigger camera choreography, Lenis momentum, Disney-calibrated spring physics, and sunlit PBR Three.js models that tell a product's story at 60–120fps.",
-    accent: "orange",
-    metrics: [
-      { label: "Desktop Frame Rate", value: "60–120fps" },
-      { label: "3D Adaptive Tiers", value: "3 Auto-Tiers" },
-      { label: "Motion Safety", value: "A11y Native" },
-    ],
-    capabilities: [
-      "Three.js / React Three Fiber & Custom GLSL",
-      "Sunlit PBR Porcelain, Titanium & Glass Shaders",
-      "GSAP Pinned Horizontal & Sticky Multi-Slide",
-      "Adaptive GPU Scaling & Procedural Web Audio",
-    ],
-    codeProof: `// Dual-Engine Living Actor Loop
-useFrame((state, delta) => {
-  const target = cinemaClock.progress * Math.PI * 2;
-  prism.rotation.y = damp(prism.rotation.y, target, 4, delta);
-  prism.position.y = Math.sin(state.clock.elapsedTime) * 0.08;
-});`,
-    layerIndex: 3,
+    statValue: "60fps",
+    statLabel: "Fluid motion across devices",
+    visualType: "craft",
   },
 ];
 
@@ -132,127 +70,132 @@ export interface Testimonial {
   author: string;
   role: string;
   company: string;
-  impactTag: string;
+  result: string;
 }
 
 export const testimonials: Testimonial[] = [
   {
     quote:
-      "Sura is the rarest profile in software: a Staff-level distributed systems engineer who also holds the visual sensibility of a luxury creative director. He cut our p99 query latency by 64% and delivered a WebGL interface that closed three Fortune 500 deals.",
+      "Sura is the rarest kind of engineer: he solves tough backend performance bottlenecks and still cares deeply about every pixel, transition, and customer interaction. Our trial conversions jumped 38% right after launch.",
     author: "Elena Rostova",
     role: "VP of Engineering",
     company: "Aether Systems",
-    impactTag: "-64% p99 Latency · +38% Conversion",
+    result: "64% faster · +38% conversions",
   },
   {
     quote:
-      "Moving billions across borders demands absolute calm and zero ambiguity. Sura transformed our multi-sig approval flow into something Swiss watchmakers would admire — our executive NPS jumped 33 points in a single quarter.",
+      "When clients move millions of dollars, software has to feel calm and trustworthy. Sura transformed a stressful workflow into the cleanest, fastest financial platform our customers have ever used.",
     author: "Marcus Lindholm",
     role: "Co-Founder & CTO",
-    company: "Solstice Treasury Zurich",
-    impactTag: "$2.4B Settled · 84 Executive NPS",
+    company: "Solstice Financial",
+    result: "$2.4B processed · 84 NPS",
   },
   {
     quote:
-      "Other studios handed us 30MB WebGL scenes that froze iPhones. Sura engineered a sunlit 3D commerce flagship that runs at 60fps on mid-range mobile devices and lifted our conversion rate by 41%.",
+      "Previous web agencies gave us heavy sites that crawled on iPhones. Sura delivered a luxury digital flagship that loads in a second, feels effortless to browse, and grew our online sales by 41%.",
     author: "Camille Laurent",
     role: "Chief Digital Officer",
-    company: "Maison Velour Paris",
-    impactTag: "+41% Sales Lift · 1.18s LCP",
+    company: "Maison Velour",
+    result: "+41% sales · 1.1s load time",
   },
 ];
 
-export interface CareerEra {
+export interface ExperienceItem {
   period: string;
   role: string;
-  organization: string;
+  company: string;
   location: string;
-  headline: string;
+  summary: string;
   highlights: string[];
-  accent: "teal" | "orange";
 }
 
-export const careerEras: CareerEra[] = [
+export const experiences: ExperienceItem[] = [
   {
-    period: "2024 — PRESENT",
-    role: "Principal Software Engineer & Creative Web Architect",
-    organization: "Sura Atelier · Independent & Advisory",
-    location: "Addis Ababa · Global",
-    headline: "Leading flagship SaaS architecture, luxury 3D web flagships, and design-engineering transformations.",
+    period: "2024 — Present",
+    role: "Principal Software Engineer & Web Consultant",
+    company: "Independent · Sura Aman",
+    location: "Addis Ababa · Global Remote",
+    summary:
+      "Partnering with ambitious SaaS teams and luxury brands to architect flagship web applications, redesign complex dashboards, and ship fast full-stack products.",
     highlights: [
-      "Architected Aether Cloud OS real-time 40k-node WebGL observability viewport.",
-      "Built Solstice Private Vault multi-sig institutional settlement experience ($2.4B settled).",
-      "Advised Series B–D engineering teams on React 19, performance budgets, and design systems.",
+      "Led Aether Cloud's frontend and live-streaming overhaul (-64% latency, +38% conversions).",
+      "Architected Solstice Treasury's multi-signature banking experience ($2.4B processed).",
+      "Built Maison Velour's luxury e-commerce flagship (+41% online sales lift).",
     ],
-    accent: "orange",
   },
   {
     period: "2022 — 2024",
-    role: "Staff Frontend & Motion Architecture Lead",
-    organization: "Kinetix Labs",
+    role: "Staff Frontend & Design System Engineer",
+    company: "Kinetix Labs",
     location: "San Francisco (Remote)",
-    headline: "Scaled a multiplayer browser-native kinetic design engine to 180,000+ monthly creators.",
+    summary:
+      "Owned the multiplayer browser workspace, component design system, and frontend architecture powering 180,000+ monthly active creators.",
     highlights: [
-      "Engineered Yjs CRDT real-time canvas sync maintaining 24ms median collaboration latency.",
-      "Designed the analytical RK4 spring-physics timeline solver and clean React/GSAP code exporter.",
-      "Mentored 10 engineers across rendering performance, accessibility, and strict TypeScript architecture.",
+      "Engineered real-time multiplayer sync with 24ms median latency.",
+      "Simplified onboarding and workspace controls, lifting first-run completion by 47%.",
+      "Mentored a team of 10 engineers on React performance, TypeScript, and UX polish.",
     ],
-    accent: "teal",
   },
   {
     period: "2020 — 2022",
-    role: "Senior Full-Stack Systems Engineer",
-    organization: "Meridian Cloud Commerce",
+    role: "Senior Full-Stack Software Engineer",
+    company: "Meridian Commerce",
     location: "London (Remote)",
-    headline: "Built high-throughput checkout pipelines and multi-brand tokenized web storefronts.",
+    summary:
+      "Engineered scalable checkout APIs and shared storefront design systems serving millions of monthly shoppers across 12 international markets.",
     highlights: [
-      "Re-engineered edge API gateway cutting checkout p95 latency from 420ms to 78ms.",
-      "Created a unified 65-component accessible design system shared across 12 international storefronts.",
-      "Championed Core Web Vitals release gates achieving 99+ Lighthouse performance across production.",
+      "Cut API checkout response times from 420ms down to 78ms.",
+      "Created an accessible 60+ component UI library adopted across all product squads.",
     ],
-    accent: "teal",
   },
   {
     period: "2018 — 2020",
-    role: "Software Engineer — Web & Interactive Systems",
-    organization: "Nordic Digital Craft",
+    role: "Software Engineer",
+    company: "Nordic Digital Craft",
     location: "Remote",
-    headline: "Forged deep foundations across full-stack TypeScript, interactive graphics, and editorial web.",
+    summary:
+      "Built custom websites, interactive product showcases, and full-stack web applications for growing European startups.",
     highlights: [
-      "Shipped 18+ production web platforms blending bespoke typography, smooth motion, and clean APIs.",
-      "Built custom WebGL product visualizers and automated visual regression pipelines.",
+      "Shipped 18+ production web platforms with crisp typography, responsive layouts, and clean APIs.",
     ],
-    accent: "orange",
   },
 ];
 
-export const engineeringPrinciples = [
+export const skillGroups = [
   {
-    code: "P·01",
-    title: "Absorb Complexity in the System",
-    law: "Tesler's Law",
-    detail:
-      "Inherent complexity never vanishes — great engineers absorb it inside resilient backends, adaptive GPU pipelines, and smart defaults so the human interface feels effortlessly calm.",
+    title: "Frontend & User Experience",
+    accent: "teal" as const,
+    skills: [
+      "Next.js & React",
+      "TypeScript",
+      "Tailwind CSS",
+      "Design Systems",
+      "Responsive Mobile to 4K",
+      "Accessibility (WCAG 2.2)",
+    ],
   },
   {
-    code: "P·02",
-    title: "Respond Inside 100 Milliseconds",
-    law: "Doherty Threshold",
-    detail:
-      "Speed is a luxury material. Optimistic UI, GPU-composited transforms, and edge caching keep humans in uninterrupted creative flow.",
+    title: "Backend & Cloud Systems",
+    accent: "teal" as const,
+    skills: [
+      "Node.js & Go",
+      "PostgreSQL & Redis",
+      "REST & GraphQL APIs",
+      "Real-Time WebSockets",
+      "Performance & Edge Caching",
+      "Security & Passkeys",
+    ],
   },
   {
-    code: "P·03",
-    title: "Direct Every Pixel With Restraint",
-    law: "Von Restorff & Prägnanz",
-    detail:
-      "75% sunlit negative space makes the 3% Neon Orange focal moment unforgettable. If everything screams for attention, nothing feels luxurious.",
-  },
-  {
-    code: "P·04",
-    title: "Choreograph Peak and Finale",
-    law: "Peak-End Rule",
-    detail:
-      "Visitors remember the most breathtaking interactive moment and the calm, decisive final ritual. Every flow — from case study to contact confirmation — ends with craft.",
+    title: "Motion & Interactive 3D",
+    accent: "orange" as const,
+    skills: [
+      "GSAP Scroll Choreography",
+      "Framer Motion Springs",
+      "Lenis Smooth Scroll",
+      "Three.js & React Three Fiber",
+      "Micro-Interactions",
+      "60fps GPU Optimization",
+    ],
   },
 ];

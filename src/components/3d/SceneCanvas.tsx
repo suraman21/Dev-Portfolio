@@ -43,7 +43,7 @@ function OpticalFallback({ label }: { label?: string }) {
       </div>
       {label && (
         <span className="font-mono-tech absolute bottom-4 left-4 text-[10px] text-[var(--ink-muted)]">
-          {label} · OPTICAL FALLBACK
+          {label}
         </span>
       )}
     </div>

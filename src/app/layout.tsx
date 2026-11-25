@@ -20,7 +20,7 @@ export const metadata: Metadata = {
     template: `%s · ${siteConfig.name}`,
   },
   description:
-    "Cinematic light-mode SaaS portfolio of Sura Aman — Senior Software Engineer & Creative Web Architect building resilient distributed systems, luxury web platforms, and interactive 3D experiences.",
+    "Portfolio of Sura Aman — Senior Product Engineer designing and building fast, clear web apps, SaaS dashboards, and interactive digital products.",
 };
 
 export const viewport: Viewport = {
