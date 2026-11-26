@@ -12,14 +12,14 @@ import {
   Download,
   ExternalLink,
   FolderKanban,
-  Globe,
+  Home,
   Image as ImageIcon,
   Inbox,
-  Layers,
   LayoutDashboard,
   LogOut,
   Mail,
   MessageSquareQuote,
+  Phone,
   Plus,
   RefreshCw,
   RotateCcw,
@@ -27,33 +27,46 @@ import {
   Trash2,
   Upload,
   User,
+  UserCircle2,
 } from "lucide-react";
 import type {
-  BuildStep,
   CmsData,
   ContactMessage,
   ContactMessageStatus,
-  ExperienceItem,
   MediaAsset,
   ServiceItem,
-  SkillGroup,
   Testimonial,
 } from "@/types/cms";
 import { useCms } from "@/components/cms/CmsProvider";
 import { generateMysqlExport } from "@/lib/sql-export";
 import { AdminProjectsTab } from "./AdminProjectsTab";
+import { AdminProfileTab } from "./AdminProfileTab";
+import { AdminHomeTab } from "./AdminHomeTab";
+import { AdminAboutTab } from "./AdminAboutTab";
+import { AdminContactFooterTab } from "./AdminContactFooterTab";
 
 type AdminTab =
   | "overview"
   | "inbox"
-  | "projects"
-  | "services"
-  | "site"
-  | "slides"
+  | "profile"
+  | "home"
   | "about"
+  | "projects"
+  | "contact"
+  | "services"
   | "testimonials"
   | "media"
   | "database";
+
+interface AdminNavGroup {
+  group: string;
+  items: {
+    id: AdminTab;
+    label: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: number;
+  }[];
+}
 
 interface AdminDashboardProps {
   userEmail: string;
@@ -81,7 +94,6 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
     setTimeout(() => setToast(null), 3200);
   }, []);
 
-  // Keep draft synced when live CMS loads initially (if not currently editing)
   useEffect(() => {
     if (!dirty) {
       setDraft(structuredClone(liveCms));
@@ -245,23 +257,42 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
   const filteredMessages =
     msgFilter === "all" ? messages : messages.filter((m) => m.status === msgFilter);
 
-  const navItems: {
-    id: AdminTab;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-    badge?: number;
-  }[] = [
-    { id: "overview", label: "Overview", icon: LayoutDashboard },
-    { id: "inbox", label: "Contact Inbox", icon: Inbox, badge: unreadCount },
-    { id: "projects", label: "Portfolio Projects", icon: FolderKanban },
-    { id: "services", label: "Services", icon: Briefcase },
-    { id: "site", label: "Site, Hero & Footer", icon: Globe },
-    { id: "slides", label: "Process Slides", icon: Layers },
-    { id: "about", label: "About & Experience", icon: User },
-    { id: "testimonials", label: "Testimonials", icon: MessageSquareQuote },
-    { id: "media", label: "Media Library", icon: ImageIcon },
-    { id: "database", label: "PHP & MySQL", icon: Database },
+  const navGroups: AdminNavGroup[] = [
+    {
+      group: "Dashboard",
+      items: [
+        { id: "overview", label: "Overview", icon: LayoutDashboard },
+        { id: "inbox", label: "Contact Inbox", icon: Inbox, badge: unreadCount },
+      ],
+    },
+    {
+      group: "Developer & Brand",
+      items: [{ id: "profile", label: "Developer Profile", icon: UserCircle2 }],
+    },
+    {
+      group: "Website Pages",
+      items: [
+        { id: "home", label: "Home Page", icon: Home },
+        { id: "about", label: "About Page", icon: User },
+        { id: "projects", label: "Work & Projects", icon: FolderKanban },
+        { id: "contact", label: "Contact & Footer", icon: Phone },
+      ],
+    },
+    {
+      group: "Collections & Assets",
+      items: [
+        { id: "services", label: "Services", icon: Briefcase },
+        { id: "testimonials", label: "Testimonials", icon: MessageSquareQuote },
+        { id: "media", label: "Media Library", icon: ImageIcon },
+      ],
+    },
+    {
+      group: "System",
+      items: [{ id: "database", label: "PHP & MySQL", icon: Database }],
+    },
   ];
+
+  const flatNavItems = navGroups.flatMap((g) => g.items);
 
   return (
     <div className="min-h-screen bg-[var(--bg-alabaster)] text-[var(--ink-obsidian)]">
@@ -328,7 +359,7 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
 
         {/* Mobile Horizontal Tab Strip */}
         <div className="flex lg:hidden overflow-x-auto gap-1.5 border-t border-[var(--border-mineral)]/70 px-4 py-2">
-          {navItems.map((item) => {
+          {flatNavItems.map((item) => {
             const Icon = item.icon;
             const active = tab === item.id;
             return (
@@ -373,37 +404,44 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
 
       {/* Main Responsive Workspace Grid */}
       <div className="mx-auto grid max-w-[1600px] grid-cols-1 lg:grid-cols-12 gap-6 px-4 py-6 sm:px-6">
-        {/* Desktop Sidebar */}
+        {/* Grouped Desktop Sidebar */}
         <aside className="hidden lg:block lg:col-span-3 xl:col-span-2">
-          <nav className="sticky top-22 space-y-1 rounded-3xl border border-[var(--border-mineral)] bg-white p-3">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              const active = tab === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => setTab(item.id)}
-                  className={`flex w-full items-center justify-between rounded-2xl px-3.5 py-2.5 text-left text-xs font-semibold transition-all cursor-pointer ${
-                    active
-                      ? "bg-[var(--ink-obsidian)] text-[#F7F5F0] shadow-sm"
-                      : "text-[var(--ink-slate)] hover:bg-[var(--bg-alabaster)] hover:text-[var(--ink-obsidian)]"
-                  }`}
-                >
-                  <span className="flex items-center gap-2.5">
-                    <Icon
-                      className={`h-4 w-4 ${active ? "text-[var(--neon-teal)]" : "text-[var(--ink-muted)]"}`}
-                    />
-                    {item.label}
-                  </span>
-                  {item.badge ? (
-                    <span className="rounded-full bg-[var(--neon-orange)] px-2 py-0.5 text-[10px] font-bold text-[#0F171A]">
-                      {item.badge}
-                    </span>
-                  ) : null}
-                </button>
-              );
-            })}
+          <nav className="sticky top-22 space-y-4 rounded-3xl border border-[var(--border-mineral)] bg-white p-3.5">
+            {navGroups.map((group) => (
+              <div key={group.group} className="space-y-1">
+                <div className="px-3 pb-1 text-[10px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">
+                  {group.group}
+                </div>
+                {group.items.map((item) => {
+                  const Icon = item.icon;
+                  const active = tab === item.id;
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setTab(item.id)}
+                      className={`flex w-full items-center justify-between rounded-2xl px-3 py-2 text-left text-xs font-semibold transition-all cursor-pointer ${
+                        active
+                          ? "bg-[var(--ink-obsidian)] text-[#F7F5F0] shadow-sm"
+                          : "text-[var(--ink-slate)] hover:bg-[var(--bg-alabaster)] hover:text-[var(--ink-obsidian)]"
+                      }`}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        <Icon
+                          className={`h-4 w-4 ${active ? "text-[var(--neon-teal)]" : "text-[var(--ink-muted)]"}`}
+                        />
+                        {item.label}
+                      </span>
+                      {item.badge ? (
+                        <span className="rounded-full bg-[var(--neon-orange)] px-2 py-0.5 text-[10px] font-bold text-[#0F171A]">
+                          {item.badge}
+                        </span>
+                      ) : null}
+                    </button>
+                  );
+                })}
+              </div>
+            ))}
           </nav>
         </aside>
 
@@ -412,6 +450,45 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
           {/* ==================== 1. OVERVIEW ==================== */}
           {tab === "overview" && (
             <div className="space-y-6">
+              {/* Profile Quick Banner */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 rounded-3xl border border-[var(--border-mineral)] bg-white p-5">
+                <div className="flex items-center gap-4">
+                  {draft.site.profileImage ? (
+                    <img
+                      src={draft.site.profileImage}
+                      alt={draft.site.profileImageAlt || draft.site.name}
+                      className="h-14 w-14 rounded-2xl object-cover object-top border border-[var(--border-mineral)]"
+                    />
+                  ) : (
+                    <span className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[var(--ink-obsidian)] font-mono text-lg font-bold text-[var(--neon-teal)]">
+                      {draft.site.monogram}
+                    </span>
+                  )}
+                  <div>
+                    <div className="text-base font-bold">{draft.site.name}</div>
+                    <div className="text-xs text-[var(--teal-deep)] font-semibold">
+                      {draft.site.role} · {draft.site.location}
+                    </div>
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setTab("profile")}
+                    className="rounded-full bg-[var(--ink-obsidian)] px-4 py-2 text-xs font-semibold text-[#F7F5F0] cursor-pointer"
+                  >
+                    Edit Developer Profile &amp; Photo
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setTab("about")}
+                    className="rounded-full border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-4 py-2 text-xs font-semibold cursor-pointer hover:border-[var(--teal-deep)]"
+                  >
+                    Edit About Page
+                  </button>
+                </div>
+              </div>
+
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-5">
                   <div className="text-xs font-medium text-[var(--ink-muted)]">
@@ -654,24 +731,104 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
             </div>
           )}
 
-          {/* ==================== 3. PORTFOLIO PROJECTS ==================== */}
-          {tab === "projects" && (
-            <AdminProjectsTab
-              projects={draft.projects}
-              mediaLibrary={draft.mediaLibrary}
-              onChange={(nextProjects) => updateDraft((prev) => ({ ...prev, projects: nextProjects }))}
+          {/* ==================== 3. DEVELOPER PROFILE & BRAND ==================== */}
+          {tab === "profile" && (
+            <AdminProfileTab
+              draft={draft}
+              uploading={uploadingMedia}
+              onUpdate={updateDraft}
               onUploadImage={handleUploadImage}
             />
           )}
 
-          {/* ==================== 4. SERVICES MANAGER ==================== */}
+          {/* ==================== 4. HOME PAGE ==================== */}
+          {tab === "home" && <AdminHomeTab draft={draft} onUpdate={updateDraft} />}
+
+          {/* ==================== 5. ABOUT PAGE ==================== */}
+          {tab === "about" && (
+            <AdminAboutTab
+              draft={draft}
+              onUpdate={updateDraft}
+              onJumpToProfile={() => setTab("profile")}
+            />
+          )}
+
+          {/* ==================== 6. WORK PAGE & PORTFOLIO PROJECTS ==================== */}
+          {tab === "projects" && (
+            <div className="space-y-6">
+              <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">
+                <h2 className="text-base font-bold">Work Page Header Copy (/work)</h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <input
+                    value={draft.site.workPageEyebrow}
+                    onChange={(e) =>
+                      updateDraft((p) => ({
+                        ...p,
+                        site: { ...p.site, workPageEyebrow: e.target.value },
+                      }))
+                    }
+                    placeholder="Eyebrow"
+                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-xs"
+                  />
+                  <input
+                    value={draft.site.workPageHeadline}
+                    onChange={(e) =>
+                      updateDraft((p) => ({
+                        ...p,
+                        site: { ...p.site, workPageHeadline: e.target.value },
+                      }))
+                    }
+                    placeholder="Main Headline"
+                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-xs font-semibold"
+                  />
+                  <input
+                    value={draft.site.workPageHighlight}
+                    onChange={(e) =>
+                      updateDraft((p) => ({
+                        ...p,
+                        site: { ...p.site, workPageHighlight: e.target.value },
+                      }))
+                    }
+                    placeholder="Teal Italic Highlight"
+                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-xs italic"
+                  />
+                </div>
+                <textarea
+                  rows={2}
+                  value={draft.site.workPageDescription}
+                  onChange={(e) =>
+                    updateDraft((p) => ({
+                      ...p,
+                      site: { ...p.site, workPageDescription: e.target.value },
+                    }))
+                  }
+                  className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-xs"
+                />
+              </div>
+
+              <AdminProjectsTab
+                projects={draft.projects}
+                mediaLibrary={draft.mediaLibrary}
+                onChange={(nextProjects) =>
+                  updateDraft((prev) => ({ ...prev, projects: nextProjects }))
+                }
+                onUploadImage={handleUploadImage}
+              />
+            </div>
+          )}
+
+          {/* ==================== 7. CONTACT PAGE & FOOTER ==================== */}
+          {tab === "contact" && <AdminContactFooterTab draft={draft} onUpdate={updateDraft} />}
+
+          {/* ==================== 8. SERVICES MANAGER ==================== */}
           {tab === "services" && (
             <div className="space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-3">
                 <div>
                   <h2 className="text-lg font-bold">Services Manager ({draft.services.length})</h2>
                   <p className="text-xs text-[var(--ink-slate)]">
-                    Active services immediately appear in the Contact Form dropdown, About page, and Footer.
+                    Active services immediately appear in the Contact Form dropdown, About page, and
+                    Footer.
                   </p>
                 </div>
                 <button
@@ -730,7 +887,7 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
                       </button>
                     </div>
 
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                    <div className="grid grid-cols-1 sm:grid-cols-5 gap-3">
                       <div className="sm:col-span-2">
                         <label className="block text-[11px] font-semibold text-[var(--ink-slate)] mb-1">
                           Service Name
@@ -762,7 +919,25 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
                               ),
                             }))
                           }
-                          className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2.5 text-sm"
+                          className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-[11px] font-semibold text-[var(--ink-slate)] mb-1">
+                          Price / Scope Label
+                        </label>
+                        <input
+                          value={svc.startingPrice}
+                          onChange={(e) =>
+                            updateDraft((prev) => ({
+                              ...prev,
+                              services: prev.services.map((item, i) =>
+                                i === idx ? { ...item, startingPrice: e.target.value } : item
+                              ),
+                            }))
+                          }
+                          placeholder="Custom Scope"
+                          className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
                         />
                       </div>
                       <div>
@@ -781,7 +956,7 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
                               ),
                             }))
                           }
-                          className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2.5 text-sm"
+                          className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
                         >
                           <option value="teal">Neon Teal</option>
                           <option value="orange">Neon Orange</option>
@@ -813,697 +988,7 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
             </div>
           )}
 
-          {/* ==================== 5. SITE, HERO, FOOTER & CONTACT COPY ==================== */}
-          {tab === "site" && (
-            <div className="space-y-6">
-              <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">
-                <h2 className="text-base font-bold">Global Brand Identity &amp; Links</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Full Name
-                    </label>
-                    <input
-                      value={draft.site.name}
-                      onChange={(e) =>
-                        updateDraft((p) => ({ ...p, site: { ...p.site, name: e.target.value } }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Monogram Badge
-                    </label>
-                    <input
-                      value={draft.site.monogram}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          site: { ...p.site, monogram: e.target.value },
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm font-mono"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Direct Email
-                    </label>
-                    <input
-                      value={draft.site.email}
-                      onChange={(e) =>
-                        updateDraft((p) => ({ ...p, site: { ...p.site, email: e.target.value } }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Role Badge
-                    </label>
-                    <input
-                      value={draft.site.role}
-                      onChange={(e) =>
-                        updateDraft((p) => ({ ...p, site: { ...p.site, role: e.target.value } }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Location
-                    </label>
-                    <input
-                      value={draft.site.location}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          site: { ...p.site, location: e.target.value },
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                    />
-                  </div>
-                  <div className="sm:col-span-3">
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Availability Banner Text
-                    </label>
-                    <input
-                      value={draft.site.availability}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          site: { ...p.site, availability: e.target.value },
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      GitHub URL
-                    </label>
-                    <input
-                      value={draft.site.github}
-                      onChange={(e) =>
-                        updateDraft((p) => ({ ...p, site: { ...p.site, github: e.target.value } }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                    />
-                  </div>
-                  <div className="sm:col-span-2">
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      LinkedIn URL
-                    </label>
-                    <input
-                      value={draft.site.linkedin}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          site: { ...p.site, linkedin: e.target.value },
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">
-                <h2 className="text-base font-bold">Hero Section &amp; Key Stats</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Hero Headline
-                    </label>
-                    <input
-                      value={draft.site.heroTitle}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          site: { ...p.site, heroTitle: e.target.value },
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm font-semibold"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Hero Italic Orange Highlight
-                    </label>
-                    <input
-                      value={draft.site.heroHighlight}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          site: { ...p.site, heroHighlight: e.target.value },
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm font-semibold"
-                    />
-                  </div>
-                </div>
-
-                <div>
-                  <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                    Hero Description
-                  </label>
-                  <textarea
-                    rows={3}
-                    value={draft.site.heroDescription}
-                    onChange={(e) =>
-                      updateDraft((p) => ({
-                        ...p,
-                        site: { ...p.site, heroDescription: e.target.value },
-                      }))
-                    }
-                    className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                  />
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-                  {draft.site.heroStats.map((stat, idx) => (
-                    <div
-                      key={idx}
-                      className="rounded-2xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] p-3.5 space-y-2"
-                    >
-                      <input
-                        value={stat.value}
-                        onChange={(e) =>
-                          updateDraft((p) => ({
-                            ...p,
-                            site: {
-                              ...p.site,
-                              heroStats: p.site.heroStats.map((s, i) =>
-                                i === idx ? { ...s, value: e.target.value } : s
-                              ),
-                            },
-                          }))
-                        }
-                        className="w-full rounded-lg border border-[var(--border-mineral)] bg-white px-2.5 py-1.5 text-sm font-bold"
-                      />
-                      <input
-                        value={stat.label}
-                        onChange={(e) =>
-                          updateDraft((p) => ({
-                            ...p,
-                            site: {
-                              ...p.site,
-                              heroStats: p.site.heroStats.map((s, i) =>
-                                i === idx ? { ...s, label: e.target.value } : s
-                              ),
-                            },
-                          }))
-                        }
-                        className="w-full rounded-lg border border-[var(--border-mineral)] bg-white px-2.5 py-1.5 text-xs"
-                      />
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">
-                <h2 className="text-base font-bold">Footer &amp; Closing CTA Copy</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Footer Headline
-                    </label>
-                    <input
-                      value={draft.site.footerHeadline}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          site: { ...p.site, footerHeadline: e.target.value },
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                      Footer Italic Highlight
-                    </label>
-                    <input
-                      value={draft.site.footerHighlight}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          site: { ...p.site, footerHighlight: e.target.value },
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                    />
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-                    Footer Bio
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={draft.site.footerBio}
-                    onChange={(e) =>
-                      updateDraft((p) => ({
-                        ...p,
-                        site: { ...p.site, footerBio: e.target.value },
-                      }))
-                    }
-                    className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                  />
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ==================== 6. PROCESS SLIDES (HOW I BUILD) ==================== */}
-          {tab === "slides" && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-lg font-bold">Sticky Full-Screen Process Slides</h2>
-                  <p className="text-xs text-[var(--ink-slate)]">
-                    Edit every slide in the color-coded &ldquo;How I Build&rdquo; section.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const nextNum = String(draft.buildSteps.length + 1).padStart(2, "0");
-                    const created: BuildStep = {
-                      id: `step-${Date.now()}`,
-                      number: nextNum,
-                      label: `Step ${nextNum} · New Stage`,
-                      title: "Built with purposeful",
-                      highlight: "precision.",
-                      description: "Describe this stage of your product process.",
-                      accent: "teal",
-                      points: ["Key deliverable 1", "Key deliverable 2"],
-                      statValue: "100%",
-                      statLabel: "Quality commitment",
-                      visualType: "strategy",
-                    };
-                    updateDraft((p) => ({ ...p, buildSteps: [...p.buildSteps, created] }));
-                  }}
-                  className="inline-flex items-center gap-1.5 rounded-full bg-[var(--neon-orange)] px-4 py-2 text-xs font-bold text-[#0F171A] cursor-pointer"
-                >
-                  <Plus className="h-3.5 w-3.5" /> Add Slide
-                </button>
-              </div>
-
-              {draft.buildSteps.map((step, idx) => (
-                <div
-                  key={step.id || idx}
-                  className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4"
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="font-mono text-xs font-bold text-[var(--teal-deep)]">
-                      SLIDE {step.number}
-                    </span>
-                    {draft.buildSteps.length > 2 && (
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateDraft((p) => ({
-                            ...p,
-                            buildSteps: p.buildSteps
-                              .filter((_, i) => i !== idx)
-                              .map((s, i) => ({
-                                ...s,
-                                number: String(i + 1).padStart(2, "0"),
-                              })),
-                          }))
-                        }
-                        className="text-xs font-semibold text-red-600 cursor-pointer"
-                      >
-                        Remove Slide
-                      </button>
-                    )}
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    <input
-                      value={step.label}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          buildSteps: p.buildSteps.map((s, i) =>
-                            i === idx ? { ...s, label: e.target.value } : s
-                          ),
-                        }))
-                      }
-                      placeholder="Badge Label"
-                      className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
-                    />
-                    <select
-                      value={step.accent}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          buildSteps: p.buildSteps.map((s, i) =>
-                            i === idx
-                              ? { ...s, accent: e.target.value as BuildStep["accent"] }
-                              : s
-                          ),
-                        }))
-                      }
-                      className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
-                    >
-                      <option value="teal">Electric Mint-Teal Studio</option>
-                      <option value="orange">Solar Neon-Orange Studio</option>
-                      <option value="cobalt">Electric Cobalt-Ice + Dark Card</option>
-                    </select>
-                    <div className="grid grid-cols-2 gap-2">
-                      <input
-                        value={step.statValue}
-                        onChange={(e) =>
-                          updateDraft((p) => ({
-                            ...p,
-                            buildSteps: p.buildSteps.map((s, i) =>
-                              i === idx ? { ...s, statValue: e.target.value } : s
-                            ),
-                          }))
-                        }
-                        placeholder="Stat Value"
-                        className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-bold"
-                      />
-                      <input
-                        value={step.statLabel}
-                        onChange={(e) =>
-                          updateDraft((p) => ({
-                            ...p,
-                            buildSteps: p.buildSteps.map((s, i) =>
-                              i === idx ? { ...s, statLabel: e.target.value } : s
-                            ),
-                          }))
-                        }
-                        placeholder="Stat Label"
-                        className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    <input
-                      value={step.title}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          buildSteps: p.buildSteps.map((s, i) =>
-                            i === idx ? { ...s, title: e.target.value } : s
-                          ),
-                        }))
-                      }
-                      placeholder="Slide Headline"
-                      className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm font-semibold"
-                    />
-                    <input
-                      value={step.highlight}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          buildSteps: p.buildSteps.map((s, i) =>
-                            i === idx ? { ...s, highlight: e.target.value } : s
-                          ),
-                        }))
-                      }
-                      placeholder="Italic Highlight Word"
-                      className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm italic"
-                    />
-                  </div>
-
-                  <textarea
-                    rows={2}
-                    value={step.description}
-                    onChange={(e) =>
-                      updateDraft((p) => ({
-                        ...p,
-                        buildSteps: p.buildSteps.map((s, i) =>
-                          i === idx ? { ...s, description: e.target.value } : s
-                        ),
-                      }))
-                    }
-                    className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                  />
-
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[var(--ink-slate)] mb-1">
-                      Bullet Points (one per line)
-                    </label>
-                    <textarea
-                      rows={3}
-                      value={step.points.join("\n")}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          buildSteps: p.buildSteps.map((s, i) =>
-                            i === idx
-                              ? {
-                                  ...s,
-                                  points: e.target.value.split("\n").filter((l) => l.trim()),
-                                }
-                              : s
-                          ),
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-xs"
-                    />
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* ==================== 7. ABOUT, EXPERIENCE & SKILLS ==================== */}
-          {tab === "about" && (
-            <div className="space-y-6">
-              <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">
-                <h2 className="text-base font-bold">About Page Introduction</h2>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <input
-                    value={draft.about.eyebrow}
-                    onChange={(e) =>
-                      updateDraft((p) => ({ ...p, about: { ...p.about, eyebrow: e.target.value } }))
-                    }
-                    placeholder="Eyebrow"
-                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                  />
-                  <input
-                    value={draft.about.headline}
-                    onChange={(e) =>
-                      updateDraft((p) => ({
-                        ...p,
-                        about: { ...p.about, headline: e.target.value },
-                      }))
-                    }
-                    placeholder="Headline"
-                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm font-semibold"
-                  />
-                  <input
-                    value={draft.about.highlight}
-                    onChange={(e) =>
-                      updateDraft((p) => ({
-                        ...p,
-                        about: { ...p.about, highlight: e.target.value },
-                      }))
-                    }
-                    placeholder="Highlight"
-                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm italic"
-                  />
-                </div>
-                <textarea
-                  rows={3}
-                  value={draft.about.bio}
-                  onChange={(e) =>
-                    updateDraft((p) => ({ ...p, about: { ...p.about, bio: e.target.value } }))
-                  }
-                  className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-                />
-              </div>
-
-              {/* Career Experience */}
-              <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-bold">Experience Timeline</h2>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const created: ExperienceItem = {
-                        id: `exp-${Date.now()}`,
-                        period: "2026 — Present",
-                        role: "Role Title",
-                        company: "Company Name",
-                        location: "Remote",
-                        summary: "Key scope and leadership summary.",
-                        highlights: ["Key shipped impact"],
-                      };
-                      updateDraft((p) => ({ ...p, experiences: [created, ...p.experiences] }));
-                    }}
-                    className="inline-flex items-center gap-1 rounded-full bg-[var(--ink-obsidian)] px-3.5 py-1.5 text-xs font-semibold text-[#F7F5F0] cursor-pointer"
-                  >
-                    <Plus className="h-3.5 w-3.5 text-[var(--neon-teal)]" /> Add Role
-                  </button>
-                </div>
-
-                {draft.experiences.map((exp, idx) => (
-                  <div
-                    key={exp.id || idx}
-                    className="rounded-2xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] p-4 space-y-3"
-                  >
-                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
-                      <input
-                        value={exp.period}
-                        onChange={(e) =>
-                          updateDraft((p) => ({
-                            ...p,
-                            experiences: p.experiences.map((item, i) =>
-                              i === idx ? { ...item, period: e.target.value } : item
-                            ),
-                          }))
-                        }
-                        placeholder="Period"
-                        className="rounded-xl border border-[var(--border-mineral)] bg-white px-3 py-2 text-xs font-semibold"
-                      />
-                      <input
-                        value={exp.role}
-                        onChange={(e) =>
-                          updateDraft((p) => ({
-                            ...p,
-                            experiences: p.experiences.map((item, i) =>
-                              i === idx ? { ...item, role: e.target.value } : item
-                            ),
-                          }))
-                        }
-                        placeholder="Role"
-                        className="sm:col-span-2 rounded-xl border border-[var(--border-mineral)] bg-white px-3 py-2 text-xs font-bold"
-                      />
-                      <input
-                        value={exp.company}
-                        onChange={(e) =>
-                          updateDraft((p) => ({
-                            ...p,
-                            experiences: p.experiences.map((item, i) =>
-                              i === idx ? { ...item, company: e.target.value } : item
-                            ),
-                          }))
-                        }
-                        placeholder="Company"
-                        className="rounded-xl border border-[var(--border-mineral)] bg-white px-3 py-2 text-xs"
-                      />
-                    </div>
-                    <textarea
-                      rows={2}
-                      value={exp.summary}
-                      onChange={(e) =>
-                        updateDraft((p) => ({
-                          ...p,
-                          experiences: p.experiences.map((item, i) =>
-                            i === idx ? { ...item, summary: e.target.value } : item
-                          ),
-                        }))
-                      }
-                      className="w-full rounded-xl border border-[var(--border-mineral)] bg-white px-3 py-2 text-xs"
-                    />
-                    <div className="flex justify-end">
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateDraft((p) => ({
-                            ...p,
-                            experiences: p.experiences.filter((_, i) => i !== idx),
-                          }))
-                        }
-                        className="text-xs font-semibold text-red-600 cursor-pointer"
-                      >
-                        Delete Role
-                      </button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Skill Groups */}
-              <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">
-                <div className="flex items-center justify-between">
-                  <h2 className="text-base font-bold">Core Skill Categories</h2>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      const created: SkillGroup = {
-                        id: `skill-${Date.now()}`,
-                        title: "New Skill Category",
-                        accent: "teal",
-                        skills: ["Skill 1", "Skill 2"],
-                      };
-                      updateDraft((p) => ({ ...p, skillGroups: [...p.skillGroups, created] }));
-                    }}
-                    className="inline-flex items-center gap-1 rounded-full bg-[var(--ink-obsidian)] px-3.5 py-1.5 text-xs font-semibold text-[#F7F5F0] cursor-pointer"
-                  >
-                    <Plus className="h-3.5 w-3.5 text-[var(--neon-orange)]" /> Add Category
-                  </button>
-                </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {draft.skillGroups.map((group, idx) => (
-                    <div
-                      key={group.id || idx}
-                      className="rounded-2xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] p-4 space-y-2.5"
-                    >
-                      <input
-                        value={group.title}
-                        onChange={(e) =>
-                          updateDraft((p) => ({
-                            ...p,
-                            skillGroups: p.skillGroups.map((g, i) =>
-                              i === idx ? { ...g, title: e.target.value } : g
-                            ),
-                          }))
-                        }
-                        className="w-full rounded-xl border border-[var(--border-mineral)] bg-white px-3 py-2 text-xs font-bold"
-                      />
-                      <textarea
-                        rows={3}
-                        value={group.skills.join(", ")}
-                        onChange={(e) =>
-                          updateDraft((p) => ({
-                            ...p,
-                            skillGroups: p.skillGroups.map((g, i) =>
-                              i === idx
-                                ? {
-                                    ...g,
-                                    skills: e.target.value
-                                      .split(",")
-                                      .map((s) => s.trim())
-                                      .filter(Boolean),
-                                  }
-                                : g
-                            ),
-                          }))
-                        }
-                        placeholder="Comma separated skills"
-                        className="w-full rounded-xl border border-[var(--border-mineral)] bg-white px-3 py-2 text-xs"
-                      />
-                      <button
-                        type="button"
-                        onClick={() =>
-                          updateDraft((p) => ({
-                            ...p,
-                            skillGroups: p.skillGroups.filter((_, i) => i !== idx),
-                          }))
-                        }
-                        className="text-[11px] font-semibold text-red-600 cursor-pointer"
-                      >
-                        Remove
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ==================== 8. TESTIMONIALS ==================== */}
+          {/* ==================== 9. TESTIMONIALS ==================== */}
           {tab === "testimonials" && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -1628,7 +1113,7 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
             </div>
           )}
 
-          {/* ==================== 9. MEDIA LIBRARY ==================== */}
+          {/* ==================== 10. MEDIA LIBRARY ==================== */}
           {tab === "media" && (
             <div className="space-y-5">
               <div className="flex flex-wrap items-center justify-between gap-3">
@@ -1637,12 +1122,13 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
                     Media Library ({draft.mediaLibrary.length} Images)
                   </h2>
                   <p className="text-xs text-[var(--ink-slate)]">
-                    Upload real product images (JPG, PNG, WebP, AVIF up to 8MB) for any project.
+                    Upload real product screenshots or developer portrait photos (JPG, PNG, WebP,
+                    AVIF up to 8MB).
                   </p>
                 </div>
                 <label className="inline-flex items-center gap-2 rounded-full bg-[var(--neon-orange)] px-5 py-2.5 text-xs font-bold text-[#0F171A] cursor-pointer shadow-sm hover:scale-[1.02]">
                   <Upload className="h-4 w-4" />
-                  {uploadingMedia ? "Uploading..." : "Upload Product Image"}
+                  {uploadingMedia ? "Uploading..." : "Upload Image"}
                   <input
                     type="file"
                     accept="image/*"
@@ -1714,7 +1200,7 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
             </div>
           )}
 
-          {/* ==================== 10. PHP & MYSQL DATABASE ==================== */}
+          {/* ==================== 11. PHP & MYSQL DATABASE ==================== */}
           {tab === "database" && (
             <div className="space-y-6">
               <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">
@@ -1739,7 +1225,7 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
                   <div className="rounded-2xl bg-[var(--bg-alabaster)] p-4 space-y-2">
                     <div className="font-bold text-[var(--ink-obsidian)]">
-                      Included MySQL Tables (php-backend/database/schema.sql)
+                      Included MySQL Tables (app/database/schema.sql)
                     </div>
                     <ul className="grid grid-cols-2 gap-1.5 font-mono text-[11px] text-[var(--teal-deep)]">
                       <li>• admin_users</li>
@@ -1761,10 +1247,19 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
                       cPanel Direct Setup (/public + /app · No .env Needed)
                     </div>
                     <ol className="space-y-1.5 text-white/80 list-decimal list-inside">
-                      <li>Upload <code>/public</code> &amp; <code>/app</code> into any cPanel folder (main domain or subdomain).</li>
-                      <li>Point your domain/subdomain DocumentRoot directly to <code>/public</code>.</li>
-                      <li>Import <code>app/database/schema.sql</code> &amp; <code>seed.sql</code> in phpMyAdmin.</li>
-                      <li>Edit MySQL &amp; admin login inside <code>app/config.php</code> — open <code>/app</code>!</li>
+                      <li>
+                        Clone <code>cpanel-deploy</code> branch or extract <code>/public</code> &amp;{" "}
+                        <code>/app</code>.
+                      </li>
+                      <li>
+                        Point your domain/subdomain DocumentRoot directly to <code>/public</code>.
+                      </li>
+                      <li>
+                        Configure MySQL &amp; Admin login in <code>app/config.php</code>.
+                      </li>
+                      <li>
+                        Run <code>git pull</code> in cPanel Terminal anytime for 2-second updates!
+                      </li>
                     </ol>
                   </div>
                 </div>

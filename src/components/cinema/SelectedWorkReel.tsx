@@ -116,12 +116,12 @@ export function SelectedWorkReel() {
         <div className="shell z-20 flex items-center justify-between gap-3 sm:gap-6">
           <div className="min-w-0">
             <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[var(--ink-obsidian)]/70">
-              Selected Work
+              {data.site.workReelEyebrow || "Selected Work"}
             </span>
             <h2 className="mt-0.5 text-lg sm:text-2xl lg:text-h3 font-bold text-[var(--ink-obsidian)] leading-tight truncate">
-              Featured{" "}
+              {data.site.workReelHeadline || "Featured"}{" "}
               <span className="font-editorial italic font-normal text-[var(--orange-lacquer)]">
-                Products
+                {data.site.workReelHighlight || "Products"}
               </span>
             </h2>
           </div>
@@ -288,23 +288,23 @@ export function SelectedWorkReel() {
           <div className="flex w-[84vw] max-w-[380px] sm:w-[70vw] sm:max-w-[480px] lg:w-[42vw] lg:max-w-[520px] shrink-0 flex-col justify-between gap-6 rounded-[24px] sm:rounded-[28px] lg:rounded-[32px] border-2 border-[#00E5CC]/40 bg-[var(--ink-obsidian)] p-6 sm:p-8 lg:p-10 text-[#F7F5F0] shadow-[0_24px_60px_-20px_rgba(15,23,26,0.45)]">
             <div>
               <span className="text-xs font-semibold uppercase tracking-wider text-[var(--neon-teal)]">
-                All Projects
+                {data.site.workReelEndEyebrow || "All Projects"}
               </span>
               <h3 className="mt-3 text-2xl sm:text-3xl lg:text-h2 font-bold leading-tight">
-                Want to see the full{" "}
+                {data.site.workReelEndHeadline || "Want to see the full"}{" "}
                 <span className="font-editorial italic font-normal text-[var(--neon-orange)]">
-                  portfolio?
+                  {data.site.workReelEndHighlight || "portfolio?"}
                 </span>
               </h3>
               <p className="mt-3 text-xs sm:text-sm text-white/75 leading-relaxed">
-                Browse every shipped SaaS dashboard, luxury website, and design system with real
-                product imagery and engineering breakdowns.
+                {data.site.workReelEndDescription ||
+                  "Browse every shipped SaaS dashboard, luxury website, and design system with real product imagery and engineering breakdowns."}
               </p>
             </div>
 
             <div className="space-y-3">
               <MagneticButton href="/work" variant="primary" className="w-full sm:w-auto">
-                Browse All Work <ArrowRight className="h-4 w-4" />
+                {data.site.workReelEndCta || "Browse All Work"} <ArrowRight className="h-4 w-4" />
               </MagneticButton>
               <div className="text-[11px] sm:text-xs text-white/55">
                 Keep scrolling down to continue ↓

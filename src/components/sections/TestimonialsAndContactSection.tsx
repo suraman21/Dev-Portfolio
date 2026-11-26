@@ -23,12 +23,12 @@ export function TestimonialsAndContactSection() {
         <div>
           <div className="max-w-2xl mb-10">
             <span className="text-xs font-semibold uppercase tracking-wider text-[var(--teal-deep)]">
-              Client Feedback
+              {site.testimonialsEyebrow || "Client Feedback"}
             </span>
             <h2 className="mt-2 text-h2 font-bold text-[var(--ink-obsidian)]">
-              What teams say after{" "}
+              {site.testimonialsHeadline || "What teams say after"}{" "}
               <span className="font-editorial italic font-normal text-[var(--orange-lacquer)]">
-                shipping together.
+                {site.testimonialsHighlight || "shipping together."}
               </span>
             </h2>
           </div>
@@ -85,7 +85,7 @@ export function TestimonialsAndContactSection() {
 
             <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
               <MagneticButton href="/contact" variant="primary">
-                Start a Conversation <ArrowUpRight className="h-4 w-4" />
+                {site.ctaButtonLabel || "Start a Conversation"} <ArrowUpRight className="h-4 w-4" />
               </MagneticButton>
               <button
                 type="button"

@@ -44,15 +44,36 @@ export function HeroSection() {
               </span>
             </motion.h1>
 
-            <motion.p
+            <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.38, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
-              className="text-body-lg max-w-[52ch] text-[var(--ink-slate)]"
+              className="flex items-start gap-3.5 max-w-[54ch]"
             >
-              Hi, I&apos;m <strong className="text-[var(--ink-obsidian)]">{site.name}</strong>.{" "}
-              {site.heroDescription}
-            </motion.p>
+              {site.profileImage && (
+                <a
+                  href="/about"
+                  title={`About ${site.name}`}
+                  className="mt-0.5 h-11 w-11 shrink-0 overflow-hidden rounded-full border-2 border-white shadow-[0_6px_18px_-6px_rgba(15,23,26,0.28)] ring-1 ring-[var(--border-mineral)] transition-transform hover:scale-105"
+                >
+                  <img
+                    src={site.profileImage}
+                    alt={site.profileImageAlt || site.name}
+                    className={`h-full w-full object-cover ${
+                      site.profileImagePosition === "bottom"
+                        ? "object-bottom"
+                        : site.profileImagePosition === "center"
+                          ? "object-center"
+                          : "object-top"
+                    }`}
+                  />
+                </a>
+              )}
+              <p className="text-body-lg text-[var(--ink-slate)]">
+                Hi, I&apos;m <strong className="text-[var(--ink-obsidian)]">{site.name}</strong>.{" "}
+                {site.heroDescription}
+              </p>
+            </motion.div>
 
             {/* Primary & Secondary Actions */}
             <motion.div
@@ -62,10 +83,10 @@ export function HeroSection() {
               className="flex flex-wrap items-center gap-3.5 pt-1"
             >
               <MagneticButton href="/work" variant="primary">
-                View Selected Work <ArrowUpRight className="h-4 w-4" />
+                {site.heroPrimaryCta || "View Selected Work"} <ArrowUpRight className="h-4 w-4" />
               </MagneticButton>
               <MagneticButton href="/contact" variant="teal">
-                Start a Conversation
+                {site.heroSecondaryCta || "Start a Conversation"}
               </MagneticButton>
             </motion.div>
 
@@ -158,7 +179,7 @@ export function HeroSection() {
           <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[var(--border-mineral)] bg-white transition-transform group-hover:translate-y-0.5">
             <ArrowDown className="h-3.5 w-3.5 text-[var(--orange-lacquer)]" />
           </span>
-          <span>Scroll to see how I build</span>
+          <span>{site.heroScrollCue || "Scroll to see how I build"}</span>
         </a>
         <span className="hidden md:inline text-xs text-[var(--ink-muted)]">{site.location}</span>
       </div>

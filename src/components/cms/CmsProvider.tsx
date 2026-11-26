@@ -32,11 +32,31 @@ export function CmsProvider({ children }: { children: React.ReactNode }) {
       const json = await res.json();
       if (json?.data) {
         const d = json.data as Partial<CmsData>;
+        const mergedSite = {
+          ...defaultCmsData.site,
+          ...(d.site || {}),
+          heroStats:
+            d.site?.heroStats && d.site.heroStats.length > 0
+              ? d.site.heroStats
+              : defaultCmsData.site.heroStats,
+          profileHighlights:
+            d.site?.profileHighlights && d.site.profileHighlights.length > 0
+              ? d.site.profileHighlights
+              : defaultCmsData.site.profileHighlights,
+          contactBudgetOptions:
+            d.site?.contactBudgetOptions && d.site.contactBudgetOptions.length > 0
+              ? d.site.contactBudgetOptions
+              : defaultCmsData.site.contactBudgetOptions,
+        };
+        const mergedAbout = {
+          ...defaultCmsData.about,
+          ...(d.about || {}),
+        };
         setData({
           ...defaultCmsData,
           ...d,
-          site: { ...defaultCmsData.site, ...(d.site || {}) },
-          about: { ...defaultCmsData.about, ...(d.about || {}) },
+          site: mergedSite,
+          about: mergedAbout,
           services: d.services && d.services.length > 0 ? d.services : defaultCmsData.services,
           projects: d.projects && d.projects.length > 0 ? d.projects : defaultCmsData.projects,
           buildSteps:
