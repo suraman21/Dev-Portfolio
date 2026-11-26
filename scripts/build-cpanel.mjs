@@ -75,6 +75,13 @@ const UPLOADS_HTACCESS = `# Security: Never allow PHP execution inside user-uplo
 Options -Indexes
 `;
 
+const CPANEL_GITIGNORE = `# Keep server-specific database credentials and uploaded media untouched by git pull
+app/config.php
+public/uploads/*
+!public/uploads/.htaccess
+.DS_Store
+`;
+
 function copyRecursive(src, dest) {
   if (!fs.existsSync(src)) return;
   const stat = fs.statSync(src);
@@ -129,12 +136,19 @@ try {
   fs.mkdirSync(uploadsDir, { recursive: true });
   fs.writeFileSync(path.join(uploadsDir, ".htaccess"), UPLOADS_HTACCESS, "utf8");
 
-  // 3. `/app` = Admin Panel PHP + MySQL Backend + `config.php` (NO .env needed!)
+  // 3. `/app` = Admin Panel PHP + MySQL Backend + `config.php` & `config.example.php` (NO .env needed!)
   copyRecursive(PHP_BACKEND_DIR, DIST_APP_DIR);
+  const configSrc = path.join(DIST_APP_DIR, "config.php");
+  if (fs.existsSync(configSrc)) {
+    fs.copyFileSync(configSrc, path.join(DIST_APP_DIR, "config.example.php"));
+  }
+
+  // 4. `.gitignore` so `git pull` on cPanel never overwrites `app/config.php` or `public/uploads/*`
+  fs.writeFileSync(path.join(DIST_DIR, ".gitignore"), CPANEL_GITIGNORE, "utf8");
 
   console.log("\n✅ cPanel bundle ready at ./cpanel-dist/");
   console.log("   - ./cpanel-dist/public/  -> Point your domain or subdomain DocumentRoot here!");
-  console.log("   - ./cpanel-dist/app/     -> Admin Panel PHP/MySQL backend + app/config.php");
+  console.log("   - ./cpanel-dist/app/     -> Admin Panel PHP/MySQL backend + app/config.example.php");
 } finally {
   if (movedApi && fs.existsSync(TEMP_API_DIR)) {
     fs.renameSync(TEMP_API_DIR, APP_API_DIR);
