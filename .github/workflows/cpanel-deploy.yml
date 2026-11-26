@@ -4,7 +4,13 @@ on:
   push:
     branches:
       - main
+  pull_request:
+    branches:
+      - main
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   build-and-deploy:
@@ -41,10 +47,24 @@ jobs:
           path: cpanel-deploy.zip
           retention-days: 30
 
+      - name: Check if optional FTPS secrets are configured
+        id: ftp_check
+        env:
+          FTP_SERVER: ${{ secrets.FTP_SERVER }}
+          FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
+          FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
+        run: |
+          if [ -n "$FTP_SERVER" ] && [ -n "$FTP_USERNAME" ] && [ -n "$FTP_PASSWORD" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "FTPS secrets not configured — skipping auto-deploy. Download cpanel-deploy-zip from Artifacts above."
+          fi
+
       # Optional Auto-Deploy straight to cPanel (main domain OR subdomain folder)
       # Set FTP_SERVER_DIR to the parent folder containing /public and /app (e.g. /portfolio/ or /subdomains/dev/)
-      - name: Auto-Deploy to cPanel via FTPS (when FTP_SERVER secret is set)
-        if: ${{ secrets.FTP_SERVER != '' && secrets.FTP_USERNAME != '' && secrets.FTP_PASSWORD != '' }}
+      - name: Auto-Deploy to cPanel via FTPS (when FTP secrets are set)
+        if: steps.ftp_check.outputs.enabled == 'true' && github.event_name != 'pull_request'
         uses: SamKirkland/FTP-Deploy-Action@v4.3.5
         with:
           server: ${{ secrets.FTP_SERVER }}
