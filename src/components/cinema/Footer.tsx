@@ -185,7 +185,7 @@ export function Footer() {
                   24 FPS · Responsive Mobile to 4K
                 </span>
                 <Link
-                  href="/admin"
+                  href="/app"
                   className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-mineral)] bg-white/80 px-3 py-1 text-[11px] font-semibold text-[var(--ink-slate)] hover:border-[var(--ink-obsidian)] hover:text-[var(--ink-obsidian)] transition-colors"
                 >
                   <Lock className="h-3 w-3 text-[var(--orange-lacquer)]" /> Admin Panel

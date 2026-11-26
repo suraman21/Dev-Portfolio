@@ -1758,13 +1758,13 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
 
                   <div className="rounded-2xl bg-[var(--ink-obsidian)] p-4 text-[#F7F5F0] space-y-2">
                     <div className="font-bold text-[var(--neon-teal)]">
-                      Deploy to Your PHP + MySQL Server
+                      cPanel Direct Setup (/public + /app · No .env Needed)
                     </div>
                     <ol className="space-y-1.5 text-white/80 list-decimal list-inside">
-                      <li>Import <code>php-backend/database/schema.sql</code> into MySQL 8.</li>
-                      <li>Export your latest SQL below (or import <code>seed.sql</code>).</li>
-                      <li>Configure <code>php-backend/.env</code> with DB credentials.</li>
-                      <li>Set <code>PHP_API_URL=https://api.yourdomain.com</code> in Next.js.</li>
+                      <li>Upload <code>/public</code> &amp; <code>/app</code> into any cPanel folder (main domain or subdomain).</li>
+                      <li>Point your domain/subdomain DocumentRoot directly to <code>/public</code>.</li>
+                      <li>Import <code>app/database/schema.sql</code> &amp; <code>seed.sql</code> in phpMyAdmin.</li>
+                      <li>Edit MySQL &amp; admin login inside <code>app/config.php</code> — open <code>/app</code>!</li>
                     </ol>
                   </div>
                 </div>

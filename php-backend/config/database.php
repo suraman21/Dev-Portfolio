@@ -2,47 +2,64 @@
 declare(strict_types=1);
 
 /**
- * Lightweight .env loader + PDO MySQL 8 singleton connection.
+ * Config Loader + PDO MySQL 8 / MariaDB Singleton Connection.
+ * Reads directly from `app/config.php` (zero .env file required!).
+ * Also honors OS environment variables if running inside Docker.
  */
 final class Database
 {
     private static ?PDO $instance = null;
-    private static bool $envLoaded = false;
+    private static ?array $config = null;
 
-    public static function loadEnv(?string $path = null): void
+    public static function loadConfig(): array
     {
-        if (self::$envLoaded) {
-            return;
+        if (self::$config !== null) {
+            return self::$config;
         }
-        $envFile = $path ?? dirname(__DIR__) . '/.env';
-        if (is_file($envFile) && is_readable($envFile)) {
-            $lines = file($envFile, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
-            if ($lines !== false) {
-                foreach ($lines as $line) {
-                    $trimmed = trim($line);
-                    if ($trimmed === '' || str_starts_with($trimmed, '#')) {
-                        continue;
-                    }
-                    $parts = explode('=', $trimmed, 2);
-                    if (count($parts) === 2) {
-                        $key = trim($parts[0]);
-                        $value = trim($parts[1], " \t\n\r\0\x0B\"'");
-                        if (getenv($key) === false) {
-                            putenv("$key=$value");
-                            $_ENV[$key] = $value;
-                        }
-                    }
-                }
+
+        $configFile = dirname(__DIR__) . '/config.php';
+        $loaded = [];
+        if (is_file($configFile) && is_readable($configFile)) {
+            $data = require $configFile;
+            if (is_array($data)) {
+                $loaded = $data;
             }
         }
-        self::$envLoaded = true;
+
+        self::$config = $loaded;
+        return self::$config;
     }
 
+    /** Backwards-compatible alias kept for callers */
+    public static function loadEnv(?string $path = null): void
+    {
+        self::loadConfig();
+    }
+
+    /**
+     * Reads a setting from `config.php` first (lowercase key like `db_host`),
+     * with fallback to OS environment variables (uppercase like `DB_HOST`) for Docker.
+     */
     public static function env(string $key, string $default = ''): string
     {
-        self::loadEnv();
-        $val = getenv($key);
-        return $val === false ? $default : (string) $val;
+        $cfg = self::loadConfig();
+        $lowerKey = strtolower($key);
+
+        // Allow Docker OS environment variables to override placeholder config values
+        $osVal = getenv($key);
+        if ($osVal !== false && $osVal !== '') {
+            return (string) $osVal;
+        }
+
+        if (array_key_exists($lowerKey, $cfg)) {
+            $val = $cfg[$lowerKey];
+            if (is_bool($val)) {
+                return $val ? 'true' : 'false';
+            }
+            return (string) $val;
+        }
+
+        return $default;
     }
 
     public static function pdo(): PDO
@@ -51,9 +68,7 @@ final class Database
             return self::$instance;
         }
 
-        self::loadEnv();
-
-        $host = self::env('DB_HOST', '127.0.0.1');
+        $host = self::env('DB_HOST', 'localhost');
         $port = self::env('DB_PORT', '3306');
         $name = self::env('DB_NAME', 'dev_portfolio_cms');
         $user = self::env('DB_USER', 'root');

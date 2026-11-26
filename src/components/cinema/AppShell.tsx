@@ -9,7 +9,7 @@ import { Footer } from "./Footer";
 
 function ShellFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isAdmin = pathname?.startsWith("/admin");
+  const isAdmin = pathname?.startsWith("/app") || pathname?.startsWith("/admin");
 
   if (isAdmin) {
     return (
