@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowUpRight, CheckCircle2, Clock, MapPin } from "lucide-react";
 import { useCms } from "@/components/cms/CmsProvider";
 import { MagneticButton } from "@/components/ui/MagneticButton";
+import { BrandAvatar } from "@/components/ui/BrandAvatar";
 
 const OBJECT_POS_CLASS: Record<"top" | "center" | "bottom", string> = {
   top: "object-top",
@@ -124,9 +125,13 @@ export default function AboutPage() {
                         {site.role}
                       </div>
                     </div>
-                    <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--ink-obsidian)] font-mono text-xs font-bold text-[var(--neon-teal)]">
-                      {site.monogram}
-                    </span>
+                    <BrandAvatar
+                      src={site.profileImage}
+                      alt={site.profileImageAlt || site.name}
+                      monogram={site.monogram}
+                      position={site.profileImagePosition}
+                      sizeClass="h-9 w-9"
+                    />
                   </div>
                   {about.profileCaption && (
                     <p className="text-xs text-[var(--ink-slate)] leading-relaxed border-t border-[var(--border-mineral)] pt-2.5">

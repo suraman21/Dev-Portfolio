@@ -24,8 +24,9 @@ export function SelectedWorkReel() {
   const { data } = useCms();
   const stageRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<ScrollTrigger | null>(null);
-  const [progress, setProgress] = useState(0);
+  const lastIndexRef = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
 
   const visibleProjects = useMemo(
@@ -55,6 +56,7 @@ export function SelectedWorkReel() {
       if (!stage || !track) return;
 
       const getDistance = () => Math.max(0, track.scrollWidth - stage.clientWidth);
+      const isCoarseTouch = window.matchMedia("(pointer: coarse)").matches;
 
       const horizontalTween = gsap.to(track, {
         x: () => -getDistance(),
@@ -62,21 +64,30 @@ export function SelectedWorkReel() {
         scrollTrigger: {
           trigger: stage,
           pin: true,
-          scrub: 0.35,
+          // Instant 1:1 tracking on touch devices; crisp minimal smoothing on desktop
+          scrub: isCoarseTouch ? true : 0.12,
           start: "top top",
           end: () => {
             const dist = getDistance();
             const isMobile = window.innerWidth < 768;
-            // Slightly tighter scroll travel on phones so thumb scrolling feels natural & swift
-            return `+=${Math.max(320, dist * (isMobile ? 0.72 : 0.88))}`;
+            // Fast, effortless vertical-to-horizontal scroll ratio
+            return `+=${Math.max(260, dist * (isMobile ? 0.48 : 0.68))}`;
           },
           invalidateOnRefresh: true,
           anticipatePin: 1,
           onUpdate: (self) => {
-            setProgress(self.progress);
-            setActiveIndex(
-              Math.min(totalSlides - 1, Math.round(self.progress * (totalSlides - 1)))
+            // Update progress bar directly in the DOM (zero React re-renders per scroll frame!)
+            if (progressBarRef.current) {
+              progressBarRef.current.style.width = `${Math.max(12, self.progress * 100)}%`;
+            }
+            const nextIdx = Math.min(
+              totalSlides - 1,
+              Math.round(self.progress * (totalSlides - 1))
             );
+            if (nextIdx !== lastIndexRef.current) {
+              lastIndexRef.current = nextIdx;
+              setActiveIndex(nextIdx);
+            }
           },
         },
       });
@@ -133,8 +144,9 @@ export function SelectedWorkReel() {
               </span>
               <div className="h-1.5 w-14 sm:w-28 overflow-hidden rounded-full bg-black/10">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-[var(--neon-teal)] to-[var(--neon-orange)] transition-[width] duration-75"
-                  style={{ width: `${Math.max(12, progress * 100)}%` }}
+                  ref={progressBarRef}
+                  className="h-full rounded-full bg-gradient-to-r from-[var(--neon-teal)] to-[var(--neon-orange)]"
+                  style={{ width: "12%" }}
                 />
               </div>
             </div>

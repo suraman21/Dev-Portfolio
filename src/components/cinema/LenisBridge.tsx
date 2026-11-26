@@ -6,64 +6,67 @@ import Lenis from "lenis";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
+/**
+ * Scroll Performance Bridge (60–120 Hz Native Speed)
+ *
+ * - Mobile / Touch devices: Uses 100% native OS hardware-accelerated momentum
+ *   scrolling (never intercepts touch events or slows down thumb flicks).
+ * - Desktop / Mouse devices: Runs Lenis at native display refresh rate (autoRaf)
+ *   with crisp, responsive lerp so wheel scrolling feels fast and effortless.
+ * - Note: The 3D Hero Workstation runs its own independent 24 FPS pacer inside
+ *   `SceneCanvas.tsx` — global scroll & GSAP stay unlocked at full 60–120 FPS.
+ */
 export function LenisBridge() {
   const pathname = usePathname();
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
-    // Prevent mobile Safari/Chrome dynamic address-bar resizes from breaking
-    // pinned vertical-to-horizontal scroll stages or causing layout jumps.
+    // Prevent mobile browser dynamic address-bar resizes from jumping pinned stages
     ScrollTrigger.config({ ignoreMobileResize: true });
 
-    // 24 FPS cadence creates crisp, authentic real-looking motion speed
-    // and keeps CPU/GPU overhead light across mobile and desktop.
-    gsap.ticker.fps(24);
-
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    if (reducedMotion) {
-      ScrollTrigger.refresh();
-      return;
-    }
-
-    const lenis = new Lenis({
-      duration: 0.52,
-      easing: (t) => 1 - Math.pow(1 - t, 3),
-      smoothWheel: true,
-      wheelMultiplier: 1.25,
-      touchMultiplier: 1.35,
-      autoRaf: false,
-    });
-
-    lenis.on("scroll", ScrollTrigger.update);
-
-    const raf = (time: number) => {
-      lenis.raf(time * 1000);
-    };
-
-    gsap.ticker.add(raf);
-    gsap.ticker.lagSmoothing(0);
+    const isCoarseTouch =
+      window.matchMedia("(pointer: coarse)").matches ||
+      (navigator.maxTouchPoints > 0 && window.innerWidth < 1024);
 
     if (document.fonts?.ready) {
       document.fonts.ready.then(() => ScrollTrigger.refresh());
     }
 
-    // Only refresh ScrollTrigger when viewport width actually changes
-    // (ignores mobile vertical address-bar show/hide height changes).
+    // Refresh ScrollTrigger only when viewport WIDTH changes (never on mobile URL bar hide/show)
     let lastWidth = window.innerWidth;
-    let timer: ReturnType<typeof setTimeout>;
+    let resizeTimer: ReturnType<typeof setTimeout>;
     const onResize = () => {
       if (window.innerWidth === lastWidth) return;
       lastWidth = window.innerWidth;
-      clearTimeout(timer);
-      timer = setTimeout(() => ScrollTrigger.refresh(), 220);
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => ScrollTrigger.refresh(), 220);
     };
-    window.addEventListener("resize", onResize);
+    window.addEventListener("resize", onResize, { passive: true });
+
+    // On mobile/touch or reduced-motion: rely purely on fast native browser scrolling
+    if (reducedMotion || isCoarseTouch) {
+      ScrollTrigger.refresh();
+      return () => {
+        clearTimeout(resizeTimer);
+        window.removeEventListener("resize", onResize);
+      };
+    }
+
+    // Desktop/Laptop: crisp, fast native-Hz smooth wheel (zero heavy drag or 24fps throttle)
+    const lenis = new Lenis({
+      lerp: 0.16,
+      smoothWheel: true,
+      wheelMultiplier: 1.35,
+      autoRaf: true,
+    });
+
+    lenis.on("scroll", ScrollTrigger.update);
 
     return () => {
-      clearTimeout(timer);
+      clearTimeout(resizeTimer);
       window.removeEventListener("resize", onResize);
-      gsap.ticker.remove(raf);
       lenis.destroy();
     };
   }, []);

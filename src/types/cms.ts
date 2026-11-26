@@ -125,6 +125,7 @@ export interface SiteSettings {
   role: string;
   location: string;
   availability: string;
+  headerCtaLabel: string;
   email: string;
   github: string;
   linkedin: string;
