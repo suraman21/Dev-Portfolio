@@ -1,9 +1,8 @@
 /**
- * CMS & Future Admin-Panel-Ready Portfolio Project Schema
+ * CMS & Full Admin-Panel Schema (Next.js Frontend + PHP/MySQL Backend)
  *
- * Every field here is plain, JSON-serializable data designed to map 1:1
- * to a database table (Postgres / Supabase / Prisma) or headless CMS
- * (Sanity / Payload / Strapi) when an Admin Panel is connected later.
+ * Every interface here maps 1:1 to tables in `php-backend/database/schema.sql`
+ * and JSON responses from `php-backend/public/index.php` and `/api/cms`.
  */
 
 export type ProjectCategory = "SaaS Products" | "Web Platforms" | "Design Systems";
@@ -33,14 +32,12 @@ export interface ProjectGalleryItem {
 }
 
 export interface ProjectMedia {
-  /** Relative path (`/images/projects/...`) or absolute remote CDN/Storage URL */
   coverImage: string;
   alt: string;
   fit: ProjectMediaFit;
   focalPoint: ProjectMediaFocalPoint;
   frameStyle: ProjectMediaFrameStyle;
   surfaceTone: ProjectMediaTone;
-  /** Optional subtle label shown on case study view */
   caption?: string;
   gallery?: ProjectGalleryItem[];
 }
@@ -58,17 +55,11 @@ export type ProjectThemePreset =
 export type ProjectCardTone = "light" | "tinted" | "dark";
 
 export interface ProjectTheme {
-  /** 1-click preset for quick Admin Panel setup, or "custom" with arbitrary hex values */
   preset: ProjectThemePreset;
-  /** Primary brand/highlight hex color for this project (e.g. "#00C4B0") */
   accentColor: string;
-  /** Soft studio section backdrop hex color (e.g. "#DCF9F3") */
   surfaceColor: string;
-  /** Controls whether the project card uses a bright, tinted, or moody dark surface */
   cardTone: ProjectCardTone;
-  /** Optional secondary gradient accent hex (defaults smoothly from accentColor) */
   secondaryAccent?: string;
-  /** Optional manual WCAG-safe ink override for accent text */
   accentInk?: string;
 }
 
@@ -84,6 +75,7 @@ export interface ProjectDecision {
 }
 
 export interface Project {
+  id?: string;
   slug: string;
   number: string;
   title: string;
@@ -92,9 +84,7 @@ export interface Project {
   role: string;
   timeline: string;
   category: ProjectCategory;
-  /** Self-contained media configuration (real uploaded image + adaptive frame rules) */
   media: ProjectMedia;
-  /** Self-contained color/tone configuration (powers sliders, cards, and case studies) */
   theme: ProjectTheme;
   tagline: string;
   keyResult: string;
@@ -116,8 +106,131 @@ export interface Project {
     description: string;
     takeaways: string[];
   };
-  /** Optional publishing metadata for future Admin Panel sorting & drafts */
   featured?: boolean;
   published?: boolean;
   liveUrl?: string;
+}
+
+export interface HeroStat {
+  value: string;
+  label: string;
+}
+
+export interface SiteSettings {
+  name: string;
+  monogram: string;
+  role: string;
+  location: string;
+  availability: string;
+  email: string;
+  github: string;
+  linkedin: string;
+  heroTitle: string;
+  heroHighlight: string;
+  heroDescription: string;
+  heroStats: HeroStat[];
+  ctaHeadline: string;
+  ctaHighlight: string;
+  ctaDescription: string;
+  footerHeadline: string;
+  footerHighlight: string;
+  footerBio: string;
+  contactHeadline: string;
+  contactHighlight: string;
+  contactDescription: string;
+  contactReplyNote: string;
+}
+
+export interface AboutContent {
+  eyebrow: string;
+  headline: string;
+  highlight: string;
+  bio: string;
+}
+
+export interface ServiceItem {
+  id: string;
+  name: string;
+  shortDescription: string;
+  timeline: string;
+  startingPrice: string;
+  accent: "teal" | "orange";
+  active: boolean;
+}
+
+export interface BuildStep {
+  id?: string;
+  number: string;
+  label: string;
+  title: string;
+  highlight: string;
+  description: string;
+  accent: "teal" | "orange" | "cobalt";
+  points: string[];
+  statValue: string;
+  statLabel: string;
+  visualType: "strategy" | "engineering" | "craft";
+}
+
+export interface Testimonial {
+  id?: string;
+  quote: string;
+  author: string;
+  role: string;
+  company: string;
+  result: string;
+}
+
+export interface ExperienceItem {
+  id?: string;
+  period: string;
+  role: string;
+  company: string;
+  location: string;
+  summary: string;
+  highlights: string[];
+}
+
+export interface SkillGroup {
+  id?: string;
+  title: string;
+  accent: "teal" | "orange";
+  skills: string[];
+}
+
+export type ContactMessageStatus = "new" | "read" | "replied" | "archived";
+
+export interface ContactMessage {
+  id: string;
+  name: string;
+  email: string;
+  serviceId?: string;
+  serviceName: string;
+  budget?: string;
+  message: string;
+  status: ContactMessageStatus;
+  createdAt: string;
+}
+
+export interface MediaAsset {
+  id: string;
+  filename: string;
+  url: string;
+  alt: string;
+  mimeType: string;
+  sizeBytes?: number;
+  createdAt: string;
+}
+
+/** Complete Website Content Payload managed by Admin Panel & PHP/MySQL API */
+export interface CmsData {
+  site: SiteSettings;
+  about: AboutContent;
+  services: ServiceItem[];
+  projects: Project[];
+  buildSteps: BuildStep[];
+  testimonials: Testimonial[];
+  experiences: ExperienceItem[];
+  skillGroups: SkillGroup[];
+  mediaLibrary: MediaAsset[];
 }

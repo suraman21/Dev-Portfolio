@@ -1,11 +1,24 @@
 "use client";
 
 import React from "react";
+import { usePathname } from "next/navigation";
+import { CmsProvider } from "@/components/cms/CmsProvider";
 import { LenisBridge } from "./LenisBridge";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
 
-export function AppShell({ children }: { children: React.ReactNode }) {
+function ShellFrame({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const isAdmin = pathname?.startsWith("/admin");
+
+  if (isAdmin) {
+    return (
+      <main id="main-content" className="relative min-h-screen bg-[var(--bg-alabaster)]">
+        {children}
+      </main>
+    );
+  }
+
   return (
     <>
       <LenisBridge />
@@ -16,5 +29,13 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       <Footer />
       <div aria-hidden="true" className="paper-grain" />
     </>
+  );
+}
+
+export function AppShell({ children }: { children: React.ReactNode }) {
+  return (
+    <CmsProvider>
+      <ShellFrame>{children}</ShellFrame>
+    </CmsProvider>
   );
 }

@@ -5,9 +5,12 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
 import { siteConfig } from "@/data/site";
+import { useCms } from "@/components/cms/CmsProvider";
 
 export function Header() {
   const pathname = usePathname();
+  const { data } = useCms();
+  const site = data.site;
 
   const isActive = (href: string) =>
     href === "/" ? pathname === "/" : pathname.startsWith(href);
@@ -24,11 +27,11 @@ export function Header() {
               className="group flex items-center gap-2.5 rounded-full py-1 pl-1 pr-3 transition-colors hover:bg-[var(--surface-stone)]/60"
             >
               <span className="flex h-9 w-9 items-center justify-center rounded-full bg-[var(--ink-obsidian)] font-mono text-xs font-bold text-[var(--neon-teal)] transition-transform duration-300 group-hover:scale-105">
-                {siteConfig.monogram}
+                {site.monogram}
               </span>
               <div className="flex flex-col">
                 <span className="text-sm font-bold leading-none tracking-[-0.02em] text-[var(--ink-obsidian)]">
-                  {siteConfig.name}
+                  {site.name}
                 </span>
                 <span className="mt-0.5 flex items-center gap-1.5 text-[11px] font-medium text-[var(--teal-deep)]">
                   <span className="pulse-teal h-1.5 w-1.5 rounded-full bg-[var(--neon-teal)]" />

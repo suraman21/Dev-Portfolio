@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CheckCircle2, Compass, Cpu, Sparkles } from "lucide-react";
-import { buildSteps, type BuildStep } from "@/data/story";
+import type { BuildStep } from "@/types/cms";
+import { useCms } from "@/components/cms/CmsProvider";
 
 /** Strong, unmistakably distinct studio color theme per slide */
 const SLIDE_THEMES: Record<
@@ -183,6 +184,8 @@ function StepVisual({ step }: { step: BuildStep }) {
  * - Mobile (<1024px): Native CSS `position: sticky` cards with the same vivid color shifts.
  */
 export function HowIBuildDeck() {
+  const { data } = useCms();
+  const buildSteps = data.buildSteps;
   const stageRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const triggerRef = useRef<ScrollTrigger | null>(null);
@@ -255,7 +258,7 @@ export function HowIBuildDeck() {
       triggerRef.current = null;
       mm.revert();
     };
-  }, []);
+  }, [buildSteps.length]);
 
   const jumpToSlide = (idx: number) => {
     setActiveIndex(idx);
