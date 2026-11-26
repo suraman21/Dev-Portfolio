@@ -129,11 +129,31 @@ final class CmsRepository
     }
 
     /**
+     * Automatically upgrades legacy `build_steps.accent` ENUM('teal','orange','cobalt')
+     * columns to VARCHAR(40) so existing cPanel databases accept all 12+ slide themes
+     * without manual phpMyAdmin intervention. Runs BEFORE any transaction (ALTER commits).
+     */
+    private static function ensureBuildStepsAccentColumn(PDO $pdo): void
+    {
+        try {
+            $col = $pdo->query("SHOW COLUMNS FROM `build_steps` LIKE 'accent'")->fetch();
+            if ($col && isset($col['Type']) && stripos((string) $col['Type'], 'enum(') === 0) {
+                $pdo->exec("ALTER TABLE `build_steps` MODIFY COLUMN `accent` VARCHAR(40) NOT NULL DEFAULT 'default'");
+            }
+        } catch (Throwable $e) {
+            // Non-fatal: continue gracefully if DB user lacks ALTER privilege
+        }
+    }
+
+    /**
      * Atomically updates any provided CMS sections inside a MySQL transaction.
      */
     public static function saveCms(array $payload): array
     {
         $pdo = Database::pdo();
+        if (isset($payload['buildSteps']) && is_array($payload['buildSteps'])) {
+            self::ensureBuildStepsAccentColumn($pdo);
+        }
         $pdo->beginTransaction();
 
         try {
