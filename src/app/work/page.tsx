@@ -4,7 +4,8 @@ import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import { ArrowUpRight } from "lucide-react";
-import { projects, type ProjectCategory } from "@/data/projects";
+import type { ProjectCategory } from "@/types/cms";
+import { useCms } from "@/components/cms/CmsProvider";
 import { resolveProjectTheme } from "@/lib/project-theme";
 import { ProjectMediaFrame } from "@/components/ui/ProjectMediaFrame";
 
@@ -16,9 +17,10 @@ const categories: ("All" | ProjectCategory)[] = [
 ];
 
 export default function WorkPage() {
+  const { data } = useCms();
   const [selected, setSelected] = useState<"All" | ProjectCategory>("All");
 
-  const visibleProjects = projects.filter((p) => p.published !== false);
+  const visibleProjects = data.projects.filter((p) => p.published !== false);
   const filtered =
     selected === "All"
       ? visibleProjects

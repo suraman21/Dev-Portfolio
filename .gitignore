@@ -30,6 +30,13 @@ yarn-error.log*
 
 # env files
 .env*
+!.env.example
+!php-backend/.env.example
+
+# runtime CMS preview store & uploads
+/data/cms-store.json
+/public/uploads/*
+/php-backend/public/uploads/*
 
 # vercel
 .vercel

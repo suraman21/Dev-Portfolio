@@ -3,13 +3,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowDown, ArrowUpRight, Maximize2, Minimize2 } from "lucide-react";
-import { siteConfig } from "@/data/site";
+import { useCms } from "@/components/cms/CmsProvider";
 import { SceneCanvas } from "@/components/3d/SceneCanvas";
 import { HeroWorkspace3D } from "@/components/3d/HeroWorkspace3D";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 
 export function HeroSection() {
   const [inspectCore, setInspectCore] = useState(false);
+  const { data } = useCms();
+  const { site } = data;
 
   return (
     <section
@@ -18,7 +20,7 @@ export function HeroSection() {
     >
       <div className="shell my-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 xl:gap-14 items-center">
-          {/* Left: Clear, High-Trust Senior Positioning */}
+          {/* Left: Clear, High-Trust Senior Positioning (Editable in Admin Panel) */}
           <div className="lg:col-span-6 space-y-6">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
@@ -27,9 +29,7 @@ export function HeroSection() {
               className="inline-flex items-center gap-2.5 rounded-full border border-[var(--border-mineral)] bg-white/90 px-4 py-1.5 shadow-[0_4px_18px_-10px_rgba(15,23,26,0.12)]"
             >
               <span className="pulse-teal h-2 w-2 rounded-full bg-[var(--neon-teal)]" />
-              <span className="text-xs font-semibold text-[var(--teal-deep)]">
-                {siteConfig.role}
-              </span>
+              <span className="text-xs font-semibold text-[var(--teal-deep)]">{site.role}</span>
             </motion.div>
 
             <motion.h1
@@ -38,9 +38,9 @@ export function HeroSection() {
               transition={{ duration: 0.4, delay: 0.04, ease: [0.16, 1, 0.3, 1] }}
               className="text-hero font-bold text-[var(--ink-obsidian)]"
             >
-              I build fast SaaS products &amp;{" "}
+              {site.heroTitle}{" "}
               <span className="font-editorial italic font-normal text-[var(--orange-lacquer)]">
-                luxury websites.
+                {site.heroHighlight}
               </span>
             </motion.h1>
 
@@ -50,9 +50,8 @@ export function HeroSection() {
               transition={{ duration: 0.38, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
               className="text-body-lg max-w-[52ch] text-[var(--ink-slate)]"
             >
-              Hi, I&apos;m <strong className="text-[var(--ink-obsidian)]">{siteConfig.name}</strong>
-              . I help startups and growing companies turn complex ideas into fast, reliable
-              software and memorable web experiences that feel effortless on every screen.
+              Hi, I&apos;m <strong className="text-[var(--ink-obsidian)]">{site.name}</strong>.{" "}
+              {site.heroDescription}
             </motion.p>
 
             {/* Primary & Secondary Actions */}
@@ -70,23 +69,23 @@ export function HeroSection() {
               </MagneticButton>
             </motion.div>
 
-            {/* 3 Simple, Credible Proof Stats */}
+            {/* 3 Credible Proof Stats */}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.16, ease: [0.16, 1, 0.3, 1] }}
-              className="grid grid-cols-3 gap-4 pt-4 border-t border-[var(--border-mineral)] max-w-xl"
+              className="grid grid-cols-3 gap-3 sm:gap-4 pt-4 border-t border-[var(--border-mineral)] max-w-xl"
             >
-              {siteConfig.heroStats.map((stat, idx) => (
-                <div key={stat.label}>
+              {site.heroStats.map((stat, idx) => (
+                <div key={`${stat.label}-${idx}`}>
                   <div
-                    className={`text-xl sm:text-2xl font-bold tracking-tight ${
+                    className={`text-lg sm:text-2xl font-bold tracking-tight ${
                       idx === 2 ? "text-[var(--orange-lacquer)]" : "text-[var(--ink-obsidian)]"
                     }`}
                   >
                     {stat.value}
                   </div>
-                  <div className="mt-0.5 text-xs text-[var(--ink-slate)] leading-snug">
+                  <div className="mt-0.5 text-[11px] sm:text-xs text-[var(--ink-slate)] leading-snug">
                     {stat.label}
                   </div>
                 </div>
@@ -94,7 +93,7 @@ export function HeroSection() {
             </motion.div>
           </div>
 
-          {/* Right: Replacement Interactive 3D Workstation & Kinetic Core (24 FPS) */}
+          {/* Right: Signature Interactive 3D Workstation & Kinetic Core (24 FPS) */}
           <motion.div
             initial={{ opacity: 0, scale: 0.98 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -102,7 +101,6 @@ export function HeroSection() {
             className="lg:col-span-6"
           >
             <div className="porcelain-glass dichroic-ring relative h-[300px] sm:h-[410px] lg:h-[520px] w-full overflow-hidden rounded-[24px] sm:rounded-[32px]">
-              {/* Clean Interactive Toggle */}
               <div className="pointer-events-none absolute left-3 right-3 top-3 sm:left-4 sm:right-4 sm:top-4 z-10 flex items-center justify-between gap-2">
                 <span className="max-w-[56%] truncate rounded-full bg-white/90 border border-[var(--border-mineral)] px-3 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium text-[var(--ink-slate)]">
                   {inspectCore ? "Kinetic Core Expanded" : "Studio Workstation · 24 FPS"}
@@ -136,7 +134,6 @@ export function HeroSection() {
                 />
               </SceneCanvas>
 
-              {/* Simple Plain-English Caption */}
               <div className="pointer-events-none absolute bottom-4 left-4 right-4 z-10 flex items-center justify-between rounded-2xl bg-white/90 px-4 py-2.5 backdrop-blur-md border border-[var(--border-mineral)]/80">
                 <span className="text-xs font-medium text-[var(--ink-obsidian)]">
                   {inspectCore
@@ -163,9 +160,7 @@ export function HeroSection() {
           </span>
           <span>Scroll to see how I build</span>
         </a>
-        <span className="hidden md:inline text-xs text-[var(--ink-muted)]">
-          {siteConfig.location}
-        </span>
+        <span className="hidden md:inline text-xs text-[var(--ink-muted)]">{site.location}</span>
       </div>
     </section>
   );

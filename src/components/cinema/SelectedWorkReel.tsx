@@ -5,7 +5,7 @@ import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
-import { projects } from "@/data/projects";
+import { useCms } from "@/components/cms/CmsProvider";
 import { resolveProjectTheme } from "@/lib/project-theme";
 import { ProjectMediaFrame } from "@/components/ui/ProjectMediaFrame";
 import { MagneticButton } from "@/components/ui/MagneticButton";
@@ -21,6 +21,7 @@ import { MagneticButton } from "@/components/ui/MagneticButton";
  *   each project's self-contained CMS `theme` + `media` config (zero hardcoded index colors).
  */
 export function SelectedWorkReel() {
+  const { data } = useCms();
   const stageRef = useRef<HTMLDivElement>(null);
   const trackRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<ScrollTrigger | null>(null);
@@ -28,8 +29,8 @@ export function SelectedWorkReel() {
   const [activeIndex, setActiveIndex] = useState(0);
 
   const visibleProjects = useMemo(
-    () => projects.filter((p) => p.published !== false),
-    []
+    () => data.projects.filter((p) => p.published !== false && p.featured !== false),
+    [data.projects]
   );
 
   const resolvedThemes = useMemo(

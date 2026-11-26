@@ -2,15 +2,16 @@
 
 import { useState } from "react";
 import { ArrowUpRight, Check, Copy, Quote } from "lucide-react";
-import { testimonials } from "@/data/story";
-import { siteConfig } from "@/data/site";
+import { useCms } from "@/components/cms/CmsProvider";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 
 export function TestimonialsAndContactSection() {
+  const { data } = useCms();
+  const { site, testimonials } = data;
   const [copied, setCopied] = useState(false);
 
   const copyEmail = () => {
-    navigator.clipboard?.writeText(siteConfig.email);
+    navigator.clipboard?.writeText(site.email);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   };
@@ -18,7 +19,7 @@ export function TestimonialsAndContactSection() {
   return (
     <section className="bg-[var(--bg-alabaster)] py-20 md:py-28">
       <div className="shell space-y-20">
-        {/* Testimonials */}
+        {/* Testimonials (Live from Admin Panel) */}
         <div>
           <div className="max-w-2xl mb-10">
             <span className="text-xs font-semibold uppercase tracking-wider text-[var(--teal-deep)]">
@@ -35,13 +36,13 @@ export function TestimonialsAndContactSection() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {testimonials.map((item, idx) => (
               <blockquote
-                key={item.author}
+                key={item.id || `${item.author}-${idx}`}
                 className="porcelain-card rounded-3xl p-7 flex flex-col justify-between"
               >
                 <div>
                   <Quote
                     className={`h-6 w-6 mb-4 ${
-                      idx === 1 ? "text-[var(--neon-orange)]" : "text-[var(--neon-teal)]"
+                      idx % 2 === 1 ? "text-[var(--neon-orange)]" : "text-[var(--neon-teal)]"
                     }`}
                   />
                   <p className="text-[15px] leading-relaxed text-[var(--ink-obsidian)]">
@@ -50,9 +51,11 @@ export function TestimonialsAndContactSection() {
                 </div>
 
                 <div className="mt-6 border-t border-[var(--border-mineral)] pt-4">
-                  <div className="inline-block rounded-full bg-[var(--teal-mist)] px-3 py-1 text-[11px] font-semibold text-[var(--teal-deep)] mb-3">
-                    {item.result}
-                  </div>
+                  {item.result && (
+                    <div className="inline-block rounded-full bg-[var(--teal-mist)] px-3 py-1 text-[11px] font-semibold text-[var(--teal-deep)] mb-3">
+                      {item.result}
+                    </div>
+                  )}
                   <div className="text-sm font-bold text-[var(--ink-obsidian)]">{item.author}</div>
                   <div className="text-xs text-[var(--ink-slate)]">
                     {item.role}, {item.company}
@@ -68,20 +71,17 @@ export function TestimonialsAndContactSection() {
           <div className="mx-auto max-w-2xl space-y-6">
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--border-mineral)] bg-white px-4 py-1.5 text-xs font-semibold text-[var(--teal-deep)]">
               <span className="pulse-teal h-2 w-2 rounded-full bg-[var(--neon-teal)]" />
-              {siteConfig.availability}
+              {site.availability}
             </div>
 
             <h2 className="text-h2 font-bold text-[var(--ink-obsidian)]">
-              Have a product or role in mind?{" "}
+              {site.ctaHeadline}{" "}
               <span className="font-editorial italic font-normal text-[var(--orange-lacquer)]">
-                Let&apos;s build it right.
+                {site.ctaHighlight}
               </span>
             </h2>
 
-            <p className="text-body-lg text-[var(--ink-slate)]">
-              Whether you&apos;re hiring a senior engineer or launching a new flagship SaaS or
-              website, I&apos;d love to hear what you&apos;re working on.
-            </p>
+            <p className="text-body-lg text-[var(--ink-slate)]">{site.ctaDescription}</p>
 
             <div className="flex flex-wrap items-center justify-center gap-3.5 pt-2">
               <MagneticButton href="/contact" variant="primary">
@@ -94,11 +94,11 @@ export function TestimonialsAndContactSection() {
               >
                 {copied ? (
                   <>
-                    <Check className="h-4 w-4 text-[var(--teal-deep)]" /> Copied {siteConfig.email}
+                    <Check className="h-4 w-4 text-[var(--teal-deep)]" /> Copied {site.email}
                   </>
                 ) : (
                   <>
-                    <Copy className="h-4 w-4 text-[var(--teal-deep)]" /> Copy {siteConfig.email}
+                    <Copy className="h-4 w-4 text-[var(--teal-deep)]" /> Copy {site.email}
                   </>
                 )}
               </button>
