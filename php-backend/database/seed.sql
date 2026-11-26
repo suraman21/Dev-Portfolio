@@ -1,10 +1,10 @@
 -- ============================================================================
--- Dev-Portfolio CMS — Initial Seed Data
+-- Dev-Portfolio CMS — Initial Seed Data (cPanel phpMyAdmin Safe)
 -- Default Admin Login: admin@sura.dev / admin1234
--- IMPORTANT: Change the admin password immediately after first deployment!
+-- IMPORTANT: Change the admin password in api/.env immediately after deploy!
 -- ============================================================================
 
-USE `dev_portfolio_cms`;
+SET NAMES utf8mb4;
 
 -- Bcrypt hash for "admin1234"
 INSERT INTO `admin_users` (`email`, `name`, `password_hash`, `role`, `is_active`)

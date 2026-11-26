@@ -24,11 +24,10 @@ function sqlJson(value: unknown): string {
 export function generateMysqlExport(cms: CmsData, messages: ContactMessage[]): string {
   const lines: string[] = [
     "-- ============================================================================",
-    `-- Dev-Portfolio CMS — Live MySQL 8 Export (${new Date().toISOString()})`,
-    "-- Import into your MySQL database after running php-backend/database/schema.sql",
+    `-- Dev-Portfolio CMS — Live MySQL 8 / MariaDB Export (${new Date().toISOString()})`,
+    "-- cPanel Safe: Select your cPanel database in phpMyAdmin, then click Import!",
     "-- ============================================================================",
     "",
-    "USE `dev_portfolio_cms`;",
     "SET NAMES utf8mb4;",
     "START TRANSACTION;",
     "",

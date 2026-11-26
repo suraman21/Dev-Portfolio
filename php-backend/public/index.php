@@ -7,12 +7,16 @@ require_once dirname(__DIR__) . '/src/CmsRepository.php';
 
 Database::loadEnv();
 
-// Strict JSON + CORS headers
-$allowedOrigin = Database::env('CORS_ORIGIN', '*');
+// Strict JSON + CORS headers (supports both same-domain cPanel and decoupled origins)
+$allowedOrigin = Database::env('CORS_ORIGIN', '');
 header('Content-Type: application/json; charset=utf-8');
-header("Access-Control-Allow-Origin: {$allowedOrigin}");
-header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
-header('Access-Control-Allow-Headers: Content-Type, Authorization');
+header('Cache-Control: no-store, max-age=0');
+if ($allowedOrigin !== '') {
+    header("Access-Control-Allow-Origin: {$allowedOrigin}");
+    header('Access-Control-Allow-Credentials: true');
+    header('Access-Control-Allow-Methods: GET, POST, PUT, PATCH, DELETE, OPTIONS');
+    header('Access-Control-Allow-Headers: Content-Type, Authorization');
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     http_response_code(204);
@@ -34,6 +38,20 @@ function readJsonBody(): array
     }
     $decoded = json_decode($raw, true);
     return is_array($decoded) ? $decoded : [];
+}
+
+function resolveUploadDir(): string
+{
+    $configured = Database::env('UPLOAD_DIR', '');
+    if ($configured !== '') {
+        return rtrim($configured, '/');
+    }
+    // On cPanel `public_html/api/public/index.php`, store uploads directly in `public_html/uploads`
+    $cpanelRootUploads = dirname(__DIR__, 2) . '/uploads';
+    if (is_dir($cpanelRootUploads) || is_file(dirname(__DIR__, 2) . '/index.html')) {
+        return $cpanelRootUploads;
+    }
+    return __DIR__ . '/uploads';
 }
 
 $method = $_SERVER['REQUEST_METHOD'];
@@ -92,7 +110,7 @@ try {
     if ($method === 'GET' && $uriPath === '/api/admin/me') {
         $user = Auth::currentUser();
         if (!$user) {
-            jsonResponse(['authenticated' => false], 401);
+            jsonResponse(['authenticated' => false, 'backend' => 'php-mysql'], 401);
         }
         jsonResponse(['authenticated' => true, 'user' => $user, 'backend' => 'php-mysql']);
     }
@@ -113,7 +131,7 @@ try {
 
     if (preg_match('#^/api/admin/messages/([^/]+)$#', $uriPath, $m)) {
         Auth::requireAuth();
-        $msgId = $m[1];
+        $msgId = urldecode($m[1]);
         if ($method === 'PATCH') {
             $body = readJsonBody();
             $ok = CmsRepository::updateMessageStatus($msgId, (string) ($body['status'] ?? 'read'));
@@ -125,7 +143,7 @@ try {
         }
     }
 
-    // 7. Protected Multipart Real Image Upload -> Saved to /public/uploads/ + MySQL media_assets
+    // 7. Protected Multipart Real Image Upload -> Saved to /uploads/ + MySQL media_assets
     if ($method === 'POST' && $uriPath === '/api/admin/upload') {
         Auth::requireAuth();
 
@@ -153,7 +171,7 @@ try {
             jsonResponse(['error' => 'Unsupported image format. Use JPG, PNG, WebP, GIF, or AVIF.'], 415);
         }
 
-        $uploadDir = __DIR__ . '/uploads';
+        $uploadDir = resolveUploadDir();
         if (!is_dir($uploadDir)) {
             mkdir($uploadDir, 0755, true);
         }
@@ -164,11 +182,11 @@ try {
         $destPath = $uploadDir . '/' . $filename;
 
         if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-            jsonResponse(['error' => 'Failed to save uploaded image.'], 500);
+            jsonResponse(['error' => 'Failed to save uploaded image. Check uploads/ folder permissions.'], 500);
         }
 
         $publicBase = rtrim(Database::env('PUBLIC_BASE_URL', ''), '/');
-        $url = ($publicBase ? $publicBase : '') . '/uploads/' . $filename;
+        $url = ($publicBase !== '' ? $publicBase : '') . '/uploads/' . $filename;
 
         $asset = CmsRepository::addMediaAsset([
             'id' => 'media-' . bin2hex(random_bytes(5)),
@@ -185,7 +203,7 @@ try {
 
     if ($method === 'DELETE' && preg_match('#^/api/admin/media/([^/]+)$#', $uriPath, $m)) {
         Auth::requireAuth();
-        $ok = CmsRepository::deleteMediaAsset($m[1]);
+        $ok = CmsRepository::deleteMediaAsset(urldecode($m[1]));
         jsonResponse(['ok' => $ok], $ok ? 200 : 404);
     }
 

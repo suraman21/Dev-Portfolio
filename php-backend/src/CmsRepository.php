@@ -392,9 +392,15 @@ final class CmsRepository
         $row = $stmt->fetch();
 
         if ($row && !empty($row['filename'])) {
-            $uploadPath = dirname(__DIR__) . '/public/uploads/' . basename($row['filename']);
-            if (is_file($uploadPath)) {
-                @unlink($uploadPath);
+            $safeName = basename($row['filename']);
+            $candidates = [
+                dirname(__DIR__, 2) . '/uploads/' . $safeName,
+                dirname(__DIR__) . '/public/uploads/' . $safeName,
+            ];
+            foreach ($candidates as $uploadPath) {
+                if (is_file($uploadPath)) {
+                    @unlink($uploadPath);
+                }
             }
         }
 

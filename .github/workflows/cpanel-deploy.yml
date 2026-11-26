@@ -1,0 +1,60 @@
+name: Build & Deploy to cPanel Shared Hosting
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22 (builds on GitHub, zero Node required on cPanel)
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: TypeScript typecheck
+        run: npm run typecheck
+
+      - name: Build cPanel Static Frontend + PHP/MySQL Bundle
+        run: npm run build:cpanel
+
+      - name: Package cpanel-deploy.zip artifact
+        run: |
+          cd cpanel-dist
+          zip -r ../cpanel-deploy.zip . -x "*.DS_Store"
+
+      - name: Upload downloadable cpanel-deploy.zip artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: cpanel-deploy-zip
+          path: cpanel-deploy.zip
+          retention-days: 30
+
+      # Optional Auto-Deploy straight to cPanel public_html/ when FTP secrets are configured
+      - name: Auto-Deploy to cPanel via FTPS (when FTP_SERVER secret is set)
+        if: ${{ secrets.FTP_SERVER != '' && secrets.FTP_USERNAME != '' && secrets.FTP_PASSWORD != '' }}
+        uses: SamKirkland/FTP-Deploy-Action@v4.3.5
+        with:
+          server: ${{ secrets.FTP_SERVER }}
+          username: ${{ secrets.FTP_USERNAME }}
+          password: ${{ secrets.FTP_PASSWORD }}
+          protocol: ftps
+          local-dir: ./cpanel-dist/
+          server-dir: ${{ secrets.FTP_SERVER_DIR || '/public_html/' }}
+          dangerous-clean-slate: false
+          exclude: |
+            **/.git*
+            **/.git*/**
+            api/.env
+            uploads/**

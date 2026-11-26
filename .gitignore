@@ -37,6 +37,8 @@ yarn-error.log*
 /data/cms-store.json
 /public/uploads/*
 /php-backend/public/uploads/*
+/cpanel-dist/
+/.tmp-next-api-backup/
 
 # vercel
 .vercel
