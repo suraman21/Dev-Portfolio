@@ -1,68 +1,24 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { projects } from "@/data/projects";
-import { ProjectPreview } from "@/components/ui/ProjectPreview";
+import { resolveProjectTheme } from "@/lib/project-theme";
+import { ProjectMediaFrame } from "@/components/ui/ProjectMediaFrame";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 
-/** Distinct, bold color identity for every horizontal project slide */
-const PROJECT_SLIDE_THEMES = [
-  {
-    // 01: Aether Cloud — Electric Teal Studio
-    sectionBg: "#DCF9F3",
-    cardBg: "linear-gradient(145deg, #ECFCF8 0%, #FFFFFF 100%)",
-    borderClass: "border-2 border-[#00D2BC] shadow-[0_28px_65px_-24px_rgba(0,122,110,0.24)]",
-    topBarClass: "from-[#00E5CC] to-[#009E8E]",
-    badgeClass: "bg-[#006B60] text-[#EAFFFB]",
-    resultBgClass: "bg-[#D9FAF3] border-[#00D2BC]/60",
-    resultTextClass: "text-[#005C53]",
-    buttonVariant: "teal" as const,
-  },
-  {
-    // 02: Solstice Treasury — Vivid Neon Orange Studio
-    sectionBg: "#FFE6D6",
-    cardBg: "linear-gradient(145deg, #FFF3EB 0%, #FFFFFF 100%)",
-    borderClass: "border-2 border-[#FF6B35] shadow-[0_28px_65px_-24px_rgba(201,57,4,0.24)]",
-    topBarClass: "from-[#FF5A1F] to-[#FF8A3D]",
-    badgeClass: "bg-[#C93904] text-[#FFF7F2]",
-    resultBgClass: "bg-[#FFE7D9] border-[#FF6B35]/60",
-    resultTextClass: "text-[#B83200]",
-    buttonVariant: "primary" as const,
-  },
-  {
-    // 03: Velour Maison — Warm Champagne Gold & Amber Studio
-    sectionBg: "#FAECD1",
-    cardBg: "linear-gradient(145deg, #FFF9EB 0%, #FFFFFF 100%)",
-    borderClass: "border-2 border-[#E29A1B] shadow-[0_28px_65px_-24px_rgba(148,88,0,0.22)]",
-    topBarClass: "from-[#F0A824] to-[#FF5A1F]",
-    badgeClass: "bg-[#8C5200] text-[#FFFBF0]",
-    resultBgClass: "bg-[#FCF0D4] border-[#E29A1B]/60",
-    resultTextClass: "text-[#7A4700]",
-    buttonVariant: "primary" as const,
-  },
-  {
-    // 04: Kinetix Workspace — Electric Sky-Cobalt Studio
-    sectionBg: "#DFEAFF",
-    cardBg: "linear-gradient(145deg, #EEF4FF 0%, #FFFFFF 100%)",
-    borderClass: "border-2 border-[#346EFF] shadow-[0_28px_65px_-24px_rgba(22,70,168,0.24)]",
-    topBarClass: "from-[#2B6BFF] to-[#00E5CC]",
-    badgeClass: "bg-[#173E99] text-[#F0F5FF]",
-    resultBgClass: "bg-[#E2ECFF] border-[#346EFF]/55",
-    resultTextClass: "text-[#14378A]",
-    buttonVariant: "teal" as const,
-  },
-];
-
 /**
- * VERTICAL-TO-HORIZONTAL PINNED SHOWCASE ("Selected Work")
- * - Desktop/Laptop (>=1024px): Scrolling down glides swiftly horizontally across
- *   4 distinctly color-themed projects (shifting the entire studio backdrop per slide)
- *   and resumes vertical scroll cleanly when finished.
- * - Mobile (<1024px): Native touch horizontal swipe carousel with the same bold colors.
+ * UNIFIED RESPONSIVE VERTICAL-TO-HORIZONTAL PINNED SHOWCASE ("Selected Work")
+ *
+ * Works identically on Mobile, Tablet, Laptop, Desktop, and 4K:
+ * - Scrolling vertically pins the stage cleanly at `100svh` (with `ignoreMobileResize: true`
+ *   so mobile browser address bars never cause pin jumps) and glides projects horizontally.
+ * - When the last card finishes, normal vertical scrolling resumes seamlessly.
+ * - Every slide's colors, contrast, and product image frame are driven dynamically by
+ *   each project's self-contained CMS `theme` + `media` config (zero hardcoded index colors).
  */
 export function SelectedWorkReel() {
   const stageRef = useRef<HTMLDivElement>(null);
@@ -71,22 +27,33 @@ export function SelectedWorkReel() {
   const [progress, setProgress] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  const totalSlides = projects.length + 1;
+  const visibleProjects = useMemo(
+    () => projects.filter((p) => p.published !== false),
+    []
+  );
+
+  const resolvedThemes = useMemo(
+    () => visibleProjects.map((p) => resolveProjectTheme(p.theme)),
+    [visibleProjects]
+  );
+
+  const totalSlides = visibleProjects.length + 1;
+
   const activeSectionBg =
-    activeIndex < PROJECT_SLIDE_THEMES.length
-      ? PROJECT_SLIDE_THEMES[activeIndex].sectionBg
+    activeIndex < resolvedThemes.length
+      ? resolvedThemes[activeIndex].sectionBg
       : "#EFECE4";
 
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
     const mm = gsap.matchMedia();
 
-    mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
+    mm.add("(prefers-reduced-motion: no-preference)", () => {
       const stage = stageRef.current;
       const track = trackRef.current;
       if (!stage || !track) return;
 
-      const getDistance = () => Math.max(0, track.scrollWidth - window.innerWidth);
+      const getDistance = () => Math.max(0, track.scrollWidth - stage.clientWidth);
 
       const horizontalTween = gsap.to(track, {
         x: () => -getDistance(),
@@ -96,7 +63,12 @@ export function SelectedWorkReel() {
           pin: true,
           scrub: 0.35,
           start: "top top",
-          end: () => `+=${getDistance() * 0.88}`,
+          end: () => {
+            const dist = getDistance();
+            const isMobile = window.innerWidth < 768;
+            // Slightly tighter scroll travel on phones so thumb scrolling feels natural & swift
+            return `+=${Math.max(320, dist * (isMobile ? 0.72 : 0.88))}`;
+          },
           invalidateOnRefresh: true,
           anticipatePin: 1,
           onUpdate: (self) => {
@@ -134,31 +106,31 @@ export function SelectedWorkReel() {
       className="relative transition-colors duration-300"
       style={{ backgroundColor: activeSectionBg }}
     >
-      {/* DESKTOP / LAPTOP: Vertical-to-Horizontal Color-Shifting Showcase */}
+      {/* UNIFIED PINNED VERTICAL-TO-HORIZONTAL STAGE (Mobile + Tablet + Desktop + 4K) */}
       <div
         ref={stageRef}
-        className="relative hidden lg:flex h-screen w-full flex-col justify-between overflow-hidden pt-24 pb-8"
+        className="relative flex h-[100svh] min-h-[580px] w-full flex-col justify-between overflow-hidden pt-[74px] pb-[78px] md:pt-[92px] md:pb-8 lg:pt-24"
       >
-        {/* Clean Top Header + Progress Indicator */}
-        <div className="shell flex items-end justify-between gap-6 z-20">
-          <div>
-            <span className="text-xs font-bold uppercase tracking-wider text-[var(--ink-obsidian)]/70">
+        {/* Responsive Top Header + Progress + Prev/Next Controls */}
+        <div className="shell z-20 flex items-center justify-between gap-3 sm:gap-6">
+          <div className="min-w-0">
+            <span className="text-[11px] sm:text-xs font-bold uppercase tracking-wider text-[var(--ink-obsidian)]/70">
               Selected Work
             </span>
-            <h2 className="mt-1 text-h3 font-bold text-[var(--ink-obsidian)]">
-              Featured Products &amp;{" "}
+            <h2 className="mt-0.5 text-lg sm:text-2xl lg:text-h3 font-bold text-[var(--ink-obsidian)] leading-tight truncate">
+              Featured{" "}
               <span className="font-editorial italic font-normal text-[var(--orange-lacquer)]">
-                Websites
+                Products
               </span>
             </h2>
           </div>
 
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-3 rounded-full bg-white/85 backdrop-blur-md px-4 py-2 border border-black/10">
-              <span className="font-mono text-xs font-bold text-[var(--ink-obsidian)]">
+          <div className="flex shrink-0 items-center gap-2 sm:gap-3.5">
+            <div className="flex items-center gap-2 sm:gap-3 rounded-full bg-white/88 backdrop-blur-md px-3 py-1.5 sm:px-4 sm:py-2 border border-black/10">
+              <span className="font-mono text-[11px] sm:text-xs font-bold text-[var(--ink-obsidian)]">
                 0{Math.min(activeIndex + 1, totalSlides)} / 0{totalSlides}
               </span>
-              <div className="h-1.5 w-32 overflow-hidden rounded-full bg-black/10">
+              <div className="h-1.5 w-14 sm:w-28 overflow-hidden rounded-full bg-black/10">
                 <div
                   className="h-full rounded-full bg-gradient-to-r from-[var(--neon-teal)] to-[var(--neon-orange)] transition-[width] duration-75"
                   style={{ width: `${Math.max(12, progress * 100)}%` }}
@@ -166,13 +138,13 @@ export function SelectedWorkReel() {
               </div>
             </div>
 
-            <div className="flex items-center gap-1.5">
+            <div className="flex items-center gap-1 sm:gap-1.5">
               <button
                 type="button"
                 onClick={() => jumpToSlide(activeIndex - 1)}
                 disabled={activeIndex === 0}
                 aria-label="Previous project"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-white text-[var(--ink-obsidian)] hover:border-[var(--neon-teal)] disabled:opacity-35 cursor-pointer"
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-black/15 bg-white text-[var(--ink-obsidian)] hover:border-[var(--neon-teal)] disabled:opacity-35 cursor-pointer"
               >
                 <ChevronLeft className="h-4 w-4" />
               </button>
@@ -181,7 +153,7 @@ export function SelectedWorkReel() {
                 onClick={() => jumpToSlide(activeIndex + 1)}
                 disabled={activeIndex >= totalSlides - 1}
                 aria-label="Next project"
-                className="flex h-9 w-9 items-center justify-center rounded-full border border-black/15 bg-white text-[var(--ink-obsidian)] hover:border-[var(--neon-orange)] disabled:opacity-35 cursor-pointer"
+                className="flex h-8 w-8 sm:h-9 sm:w-9 items-center justify-center rounded-full border border-black/15 bg-white text-[var(--ink-obsidian)] hover:border-[var(--neon-orange)] disabled:opacity-35 cursor-pointer"
               >
                 <ChevronRight className="h-4 w-4" />
               </button>
@@ -189,183 +161,164 @@ export function SelectedWorkReel() {
           </div>
         </div>
 
-        {/* Horizontal Track (Each card has its own unmistakable color palette) */}
+        {/* Horizontal Track — Zero-Distortion Cards Across Every Screen Size */}
         <div
           ref={trackRef}
-          className="flex flex-nowrap items-center gap-8 pl-[var(--safe-x)] pr-[12vw] my-auto will-change-transform"
+          className="my-auto flex flex-nowrap items-center gap-4 sm:gap-6 lg:gap-8 pl-[var(--safe-x)] pr-[8vw] lg:pr-[12vw] will-change-transform"
         >
-          {projects.map((project, idx) => {
-            const theme = PROJECT_SLIDE_THEMES[idx % PROJECT_SLIDE_THEMES.length];
+          {visibleProjects.map((project, idx) => {
+            const theme = resolvedThemes[idx];
             return (
               <article
                 key={project.slug}
-                style={{ background: theme.cardBg }}
-                className={`relative overflow-hidden flex h-[66vh] min-h-[450px] max-h-[600px] w-[76vw] max-w-[1080px] shrink-0 items-center rounded-[32px] p-8 xl:p-10 ${theme.borderClass}`}
+                style={{
+                  background: theme.cardBg,
+                  borderColor: theme.cardBorder,
+                  boxShadow: theme.cardShadow,
+                }}
+                className="relative flex w-[88vw] max-w-[400px] sm:w-[82vw] sm:max-w-[600px] lg:w-[76vw] lg:max-w-[1080px] shrink-0 overflow-hidden rounded-[24px] sm:rounded-[28px] lg:rounded-[32px] border-2 p-4 sm:p-6 lg:p-9 xl:p-10"
               >
-                {/* Bold Color Accent Top Strip */}
+                {/* Dynamic Per-Project Top Color Bar */}
                 <div
                   aria-hidden="true"
-                  className={`absolute left-0 right-0 top-0 h-2 bg-gradient-to-r ${theme.topBarClass}`}
+                  className="absolute left-0 right-0 top-0 h-1.5 sm:h-2"
+                  style={{ background: theme.topBarGradient }}
                 />
 
-                <div className="grid w-full grid-cols-12 gap-8 items-center">
-                  {/* Left Plain-English Project Summary */}
-                  <div className="col-span-6 space-y-5">
-                    <div className="flex items-center gap-3">
+                {/* Responsive Layout: Clean Vertical Stack on Mobile/Tablet -> 12-Col Split on Desktop */}
+                <div className="flex w-full flex-col gap-3.5 sm:gap-5 pt-1 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-center">
+                  {/* Product Image Showcase (Top on Mobile, Right on Desktop — Locked 16:10, Zero Distortion) */}
+                  <div className="w-full lg:order-2 lg:col-span-6">
+                    <ProjectMediaFrame
+                      media={project.media}
+                      theme={project.theme}
+                      title={project.title}
+                      compact
+                      priority={idx === 0}
+                    />
+                  </div>
+
+                  {/* Plain-English Project Summary (Bottom on Mobile, Left on Desktop) */}
+                  <div className="flex flex-col justify-between gap-2.5 sm:gap-4 lg:order-1 lg:col-span-6">
+                    <div className="flex flex-wrap items-center gap-2 sm:gap-3">
                       <span
-                        className={`rounded-full px-3.5 py-1 text-xs font-bold ${theme.badgeClass}`}
+                        className="rounded-full px-2.5 py-0.5 sm:px-3.5 sm:py-1 text-[11px] sm:text-xs font-bold"
+                        style={{ backgroundColor: theme.badgeBg, color: theme.badgeText }}
                       >
                         {project.category}
                       </span>
-                      <span className="text-xs font-semibold text-[var(--ink-slate)]">
+                      <span
+                        className="text-[11px] sm:text-xs font-semibold truncate"
+                        style={{ color: theme.mutedColor }}
+                      >
                         {project.client} · {project.year}
                       </span>
                     </div>
 
-                    <h3 className="text-h2 font-bold text-[var(--ink-obsidian)]">
+                    <h3
+                      className="text-xl sm:text-2xl lg:text-h2 font-bold leading-tight"
+                      style={{ color: theme.titleColor }}
+                    >
                       {project.title}
                     </h3>
 
-                    <p className="text-body text-[#2C3A40] max-w-[44ch]">{project.tagline}</p>
+                    <p
+                      className="text-xs sm:text-sm lg:text-body leading-relaxed line-clamp-2 lg:line-clamp-none max-w-[44ch]"
+                      style={{ color: theme.bodyColor }}
+                    >
+                      {project.tagline}
+                    </p>
 
-                    <div className={`rounded-2xl border px-4 py-3.5 ${theme.resultBgClass}`}>
-                      <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--ink-obsidian)]/65">
+                    <div
+                      className="rounded-xl sm:rounded-2xl border px-3 py-2 sm:px-4 sm:py-3"
+                      style={{
+                        backgroundColor: theme.resultBg,
+                        borderColor: theme.resultBorder,
+                      }}
+                    >
+                      <div
+                        className="text-[10px] sm:text-[11px] font-bold uppercase tracking-wider"
+                        style={{ color: theme.resultLabelColor }}
+                      >
                         Key Result
                       </div>
-                      <div className={`mt-0.5 text-lg font-bold ${theme.resultTextClass}`}>
+                      <div
+                        className="mt-0.5 text-xs sm:text-base lg:text-lg font-bold leading-snug"
+                        style={{ color: theme.accentInk }}
+                      >
                         {project.keyResult}
                       </div>
                     </div>
 
-                    <div className="flex flex-wrap gap-2">
+                    {/* Tech Chips: visible on tablet/desktop so mobile stays ultra-clean and uncluttered */}
+                    <div className="hidden sm:flex flex-wrap gap-1.5 lg:gap-2">
                       {project.stack.slice(0, 4).map((tech) => (
                         <span
                           key={tech}
-                          className="rounded-full border border-black/12 bg-white px-3 py-1 text-xs font-semibold text-[var(--ink-obsidian)]"
+                          className="rounded-full border px-3 py-1 text-xs font-semibold"
+                          style={{
+                            backgroundColor: theme.chipBg,
+                            borderColor: theme.chipBorder,
+                            color: theme.chipText,
+                          }}
                         >
                           {tech}
                         </span>
                       ))}
                     </div>
 
-                    <div className="pt-1">
-                      <MagneticButton href={`/work/${project.slug}`} variant={theme.buttonVariant}>
-                        View Case Study <ArrowUpRight className="h-4 w-4" />
-                      </MagneticButton>
+                    <div className="pt-0.5">
+                      <Link
+                        href={`/work/${project.slug}`}
+                        style={{ backgroundColor: theme.ctaBg, color: theme.ctaText }}
+                        className="inline-flex w-full sm:w-auto min-h-[42px] sm:min-h-[46px] items-center justify-center gap-2 rounded-full px-5 py-2.5 text-xs sm:text-sm font-semibold shadow-sm transition-transform hover:scale-[1.02] active:scale-[0.98]"
+                      >
+                        <span>View Case Study</span>
+                        <ArrowUpRight className="h-4 w-4" />
+                      </Link>
                     </div>
-                  </div>
-
-                  {/* Right Realistic SaaS / Web Product UI Preview */}
-                  <div className="col-span-6">
-                    <ProjectPreview type={project.previewType} title={project.title} />
                   </div>
                 </div>
               </article>
             );
           })}
 
-          {/* Clean End-Cap Leading to Full Work Page */}
-          <div className="flex h-[66vh] min-h-[450px] max-h-[600px] w-[42vw] max-w-[520px] shrink-0 flex-col justify-between rounded-[32px] border-2 border-[#00E5CC]/40 bg-[var(--ink-obsidian)] p-10 text-[#F7F5F0] shadow-[0_24px_60px_-20px_rgba(15,23,26,0.45)]">
+          {/* Responsive End-Cap Card Leading to Full Portfolio Index */}
+          <div className="flex w-[84vw] max-w-[380px] sm:w-[70vw] sm:max-w-[480px] lg:w-[42vw] lg:max-w-[520px] shrink-0 flex-col justify-between gap-6 rounded-[24px] sm:rounded-[28px] lg:rounded-[32px] border-2 border-[#00E5CC]/40 bg-[var(--ink-obsidian)] p-6 sm:p-8 lg:p-10 text-[#F7F5F0] shadow-[0_24px_60px_-20px_rgba(15,23,26,0.45)]">
             <div>
               <span className="text-xs font-semibold uppercase tracking-wider text-[var(--neon-teal)]">
                 All Projects
               </span>
-              <h3 className="mt-4 text-h2 font-bold">
+              <h3 className="mt-3 text-2xl sm:text-3xl lg:text-h2 font-bold leading-tight">
                 Want to see the full{" "}
                 <span className="font-editorial italic font-normal text-[var(--neon-orange)]">
                   portfolio?
                 </span>
               </h3>
-              <p className="mt-4 text-sm text-white/70 leading-relaxed">
-                Browse every shipped SaaS dashboard, luxury website, and design system with full
-                outcomes and architecture notes.
+              <p className="mt-3 text-xs sm:text-sm text-white/75 leading-relaxed">
+                Browse every shipped SaaS dashboard, luxury website, and design system with real
+                product imagery and engineering breakdowns.
               </p>
             </div>
 
-            <div className="space-y-4">
-              <MagneticButton href="/work" variant="primary">
+            <div className="space-y-3">
+              <MagneticButton href="/work" variant="primary" className="w-full sm:w-auto">
                 Browse All Work <ArrowRight className="h-4 w-4" />
               </MagneticButton>
-              <div className="text-xs text-white/50">
-                Keep scrolling to continue down the page ↓
+              <div className="text-[11px] sm:text-xs text-white/55">
+                Keep scrolling down to continue ↓
               </div>
             </div>
           </div>
         </div>
 
-        <div className="shell flex items-center justify-between text-xs font-medium text-[var(--ink-obsidian)]/70">
-          <span>Scroll down to glide through color-coded project slides</span>
+        {/* Clean Bottom Status Bar */}
+        <div className="shell flex items-center justify-between text-[11px] sm:text-xs font-medium text-[var(--ink-obsidian)]/70">
+          <span>Scroll down to slide across projects</span>
           <Link href="/work" className="font-bold text-[var(--ink-obsidian)] hover:underline">
-            View all work →
+            View all →
           </Link>
         </div>
-      </div>
-
-      {/* MOBILE / TABLET: Smooth Native Touch Horizontal Swipe Carousel with Distinct Card Colors */}
-      <div className="lg:hidden py-16 border-b border-[var(--border-mineral)] bg-[var(--surface-porcelain)]">
-        <div className="shell mb-6 flex items-end justify-between">
-          <div>
-            <span className="text-xs font-semibold uppercase tracking-wider text-[var(--orange-lacquer)]">
-              Selected Work
-            </span>
-            <h2 className="mt-1 text-h2 font-bold text-[var(--ink-obsidian)]">
-              Featured{" "}
-              <span className="font-editorial italic font-normal text-[var(--teal-deep)]">
-                Projects
-              </span>
-            </h2>
-          </div>
-          <Link href="/work" className="text-xs font-semibold text-[var(--teal-deep)] underline">
-            See All →
-          </Link>
-        </div>
-
-        <div className="touch-reel gap-4 px-5 pb-4">
-          {projects.map((project, idx) => {
-            const theme = PROJECT_SLIDE_THEMES[idx % PROJECT_SLIDE_THEMES.length];
-            return (
-              <article
-                key={project.slug}
-                style={{ background: theme.cardBg }}
-                className={`relative overflow-hidden w-[86vw] max-w-[420px] shrink-0 snap-center rounded-3xl p-5 flex flex-col justify-between gap-4 ${theme.borderClass}`}
-              >
-                <div
-                  aria-hidden="true"
-                  className={`absolute left-0 right-0 top-0 h-1.5 bg-gradient-to-r ${theme.topBarClass}`}
-                />
-                <div className="space-y-4 pt-1">
-                  <ProjectPreview type={project.previewType} title={project.title} compact />
-                  <div>
-                    <div className="flex items-center justify-between text-xs">
-                      <span className={`rounded-full px-2.5 py-0.5 font-bold ${theme.badgeClass}`}>
-                        {project.category}
-                      </span>
-                      <span className="font-medium text-[var(--ink-slate)]">{project.year}</span>
-                    </div>
-                    <h3 className="mt-2 text-xl font-bold text-[var(--ink-obsidian)]">
-                      {project.title}
-                    </h3>
-                    <p className="mt-1.5 text-sm text-[#2C3A40]">{project.tagline}</p>
-                  </div>
-                </div>
-
-                <div className="border-t border-black/10 pt-3.5">
-                  <div className={`text-xs font-bold mb-3 ${theme.resultTextClass}`}>
-                    {project.keyResult}
-                  </div>
-                  <Link
-                    href={`/work/${project.slug}`}
-                    className="inline-flex w-full items-center justify-center gap-1.5 rounded-full bg-[var(--ink-obsidian)] px-4 py-3 text-xs font-semibold text-[#F7F5F0]"
-                  >
-                    View Case Study <ArrowUpRight className="h-4 w-4 text-[var(--neon-teal)]" />
-                  </Link>
-                </div>
-              </article>
-            );
-          })}
-        </div>
-
-        <div className="shell mt-1 text-xs text-[var(--ink-muted)]">← Swipe to browse projects →</div>
       </div>
     </section>
   );

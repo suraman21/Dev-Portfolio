@@ -101,16 +101,16 @@ export function HeroSection() {
             transition={{ duration: 0.45, delay: 0.08, ease: [0.16, 1, 0.3, 1] }}
             className="lg:col-span-6"
           >
-            <div className="porcelain-glass dichroic-ring relative h-[360px] sm:h-[440px] lg:h-[520px] w-full overflow-hidden rounded-[32px]">
+            <div className="porcelain-glass dichroic-ring relative h-[300px] sm:h-[410px] lg:h-[520px] w-full overflow-hidden rounded-[24px] sm:rounded-[32px]">
               {/* Clean Interactive Toggle */}
-              <div className="pointer-events-none absolute left-4 right-4 top-4 z-10 flex items-center justify-between">
-                <span className="rounded-full bg-white/90 border border-[var(--border-mineral)] px-3.5 py-1.5 text-xs font-medium text-[var(--ink-slate)]">
+              <div className="pointer-events-none absolute left-3 right-3 top-3 sm:left-4 sm:right-4 sm:top-4 z-10 flex items-center justify-between gap-2">
+                <span className="max-w-[56%] truncate rounded-full bg-white/90 border border-[var(--border-mineral)] px-3 py-1 sm:px-3.5 sm:py-1.5 text-[11px] sm:text-xs font-medium text-[var(--ink-slate)]">
                   {inspectCore ? "Kinetic Core Expanded" : "Studio Workstation · 24 FPS"}
                 </span>
                 <button
                   type="button"
                   onClick={() => setInspectCore((v) => !v)}
-                  className="pointer-events-auto inline-flex items-center gap-1.5 rounded-full bg-[var(--ink-obsidian)] px-3.5 py-1.5 text-xs font-semibold text-[#F7F5F0] shadow-sm transition-transform hover:scale-[1.03] cursor-pointer"
+                  className="pointer-events-auto shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[var(--ink-obsidian)] px-3 py-1.5 sm:px-3.5 text-[11px] sm:text-xs font-semibold text-[#F7F5F0] shadow-sm transition-transform hover:scale-[1.03] cursor-pointer"
                 >
                   {inspectCore ? (
                     <>

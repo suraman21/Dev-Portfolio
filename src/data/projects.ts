@@ -1,50 +1,15 @@
-export type ProjectPreviewType = "analytics" | "finance" | "commerce" | "workspace";
-export type ProjectCategory = "SaaS Products" | "Web Platforms" | "Design Systems";
+import type { Project, ProjectCategory } from "@/types/cms";
 
-export interface ProjectMetric {
-  label: string;
-  value: string;
-  note: string;
-}
+export type { Project, ProjectCategory };
 
-export interface ProjectDecision {
-  title: string;
-  detail: string;
-}
-
-export interface Project {
-  slug: string;
-  number: string;
-  title: string;
-  client: string;
-  year: string;
-  role: string;
-  timeline: string;
-  category: ProjectCategory;
-  accent: "teal" | "orange";
-  previewType: ProjectPreviewType;
-  tagline: string;
-  keyResult: string;
-  overview: string;
-  stack: string[];
-  metrics: ProjectMetric[];
-  challenge: {
-    heading: string;
-    description: string;
-    points: string[];
-  };
-  solution: {
-    heading: string;
-    description: string;
-    decisions: ProjectDecision[];
-  };
-  outcome: {
-    heading: string;
-    description: string;
-    takeaways: string[];
-  };
-}
-
+/**
+ * Portfolio Projects Data Source (CMS / Admin-Panel-Ready)
+ *
+ * Notice how each project owns its own real product `media` (image URL, fit,
+ * focalPoint, frameStyle, surfaceTone) and its own `theme` (preset, hex colors,
+ * cardTone). When connected to a future Admin Panel / Database, this array can
+ * be replaced 1:1 with a database/CMS query without touching any UI component.
+ */
 export const projects: Project[] = [
   {
     slug: "aether-cloud",
@@ -55,8 +20,25 @@ export const projects: Project[] = [
     role: "Lead Frontend & Systems Engineer",
     timeline: "9 Months",
     category: "SaaS Products",
-    accent: "teal",
-    previewType: "analytics",
+    featured: true,
+    published: true,
+    media: {
+      coverImage: "/images/projects/aether-cloud.png",
+      alt: "Aether Cloud dark-mode real-time server throughput and latency analytics dashboard",
+      fit: "cover",
+      focalPoint: "top",
+      frameStyle: "browser",
+      surfaceTone: "dark",
+      caption: "Dark-mode live observability console framed in adaptive browser chrome",
+    },
+    theme: {
+      preset: "teal",
+      accentColor: "#00C7B3",
+      secondaryAccent: "#008E80",
+      surfaceColor: "#DCF9F3",
+      cardTone: "tinted",
+      accentInk: "#005E54",
+    },
     tagline:
       "A real-time cloud monitoring SaaS rebuilt for speed, clarity, and effortless incident resolution.",
     keyResult: "64% faster load times · +38% paid conversions",
@@ -67,7 +49,7 @@ export const projects: Project[] = [
       { label: "Query Response Time", value: "36ms", note: "64% faster than before" },
       { label: "Trial to Paid Lift", value: "+38%", note: "Measured in Q3 after launch" },
       { label: "Issue Resolution", value: "2.1 min", note: "Down from 11.4 minutes" },
-      { label: "Smooth Rendering", value: "60fps", note: "Even with live data streams" },
+      { label: "Smooth Rendering", value: "24fps+", note: "Zero UI stalls under load" },
     ],
     challenge: {
       heading: "Fast backend, frustrating user experience",
@@ -82,7 +64,7 @@ export const projects: Project[] = [
     solution: {
       heading: "Calm visual hierarchy backed by a fast streaming architecture",
       description:
-        "I redesigned the workspace in a bright, high-contrast light mode and moved heavy live data parsing off the main UI thread so scrolling, filtering, and clicking always respond instantaneously.",
+        "I redesigned the workspace for razor-sharp metric legibility and moved heavy live data parsing off the main UI thread so scrolling, filtering, and clicking always respond instantaneously.",
       decisions: [
         {
           title: "Background data streaming",
@@ -120,8 +102,25 @@ export const projects: Project[] = [
     role: "Principal Full-Stack Engineer",
     timeline: "7 Months",
     category: "SaaS Products",
-    accent: "orange",
-    previewType: "finance",
+    featured: true,
+    published: true,
+    media: {
+      coverImage: "/images/projects/solstice-treasury.png",
+      alt: "Solstice Treasury light-mode corporate banking dashboard and multi-signature wire approval queue",
+      fit: "cover",
+      focalPoint: "center",
+      frameStyle: "studio",
+      surfaceTone: "light",
+      caption: "Swiss light-mode treasury platform presented on a soft studio mat",
+    },
+    theme: {
+      preset: "orange",
+      accentColor: "#FF5A1F",
+      secondaryAccent: "#FF8C42",
+      surfaceColor: "#FFE6D6",
+      cardTone: "tinted",
+      accentInk: "#B83200",
+    },
     tagline:
       "A calm, Swiss-grade business banking and treasury platform built for high-value multi-signature transfers.",
     keyResult: "$2.4B processed safely · 71% faster approvals",
@@ -185,8 +184,25 @@ export const projects: Project[] = [
     role: "Lead Web Developer & Creative Engineer",
     timeline: "5 Months",
     category: "Web Platforms",
-    accent: "teal",
-    previewType: "commerce",
+    featured: true,
+    published: true,
+    media: {
+      coverImage: "/images/projects/velour-maison.png",
+      alt: "Maison Velour sunlit Parisian luxury travertine stone vase and brushed brass vessel editorial photography",
+      fit: "cover",
+      focalPoint: "center",
+      frameStyle: "frameless",
+      surfaceTone: "warm",
+      caption: "Frameless editorial photography preserving warm natural stone tones",
+    },
+    theme: {
+      preset: "gold",
+      accentColor: "#D99116",
+      secondaryAccent: "#FF6B2B",
+      surfaceColor: "#FAECD1",
+      cardTone: "tinted",
+      accentInk: "#7A4700",
+    },
     tagline:
       "A sunlit luxury flagship website blending editorial storytelling, smooth horizontal lookbooks, and instant mobile checkout.",
     keyResult: "+41% online sales · 1.1s mobile page load",
@@ -212,12 +228,12 @@ export const projects: Project[] = [
     solution: {
       heading: "Editorial polish engineered with strict performance budgets",
       description:
-        "I paired server-rendered Next.js pages for instant opening speed with smooth GSAP horizontal lookbooks on desktop and native touch swipe galleries on mobile.",
+        "I paired server-rendered Next.js pages for instant opening speed with smooth GSAP horizontal lookbooks that scale cleanly across desktop and mobile without distorting photography.",
       decisions: [
         {
-          title: "Device-native scrolling",
+          title: "Consistent editorial framing",
           detail:
-            "Used smooth pinned horizontal galleries on laptops/desktops and natural thumb-swipe rails on phones.",
+            "Locked every product lookbook image to clean aspect ratios with focal-point control so photography never crops awkwardly on phones.",
         },
         {
           title: "Instant tactile cart drawer",
@@ -227,7 +243,7 @@ export const projects: Project[] = [
         {
           title: "Warm gallery color palette",
           detail:
-            "Framed photography on warm porcelain stone with crisp typography and subtle teal/orange accents.",
+            "Framed photography on sunlit limestone and warm gold tones with crisp typography.",
         },
       ],
     },
@@ -236,7 +252,7 @@ export const projects: Project[] = [
       description:
         "Maison Velour saw a 41% conversion increase within 60 days while cutting mobile bounce rates in half — proving luxury storytelling and blazing speed belong together.",
       takeaways: [
-        "Respecting native touch ergonomics on phones matters more than forcing desktop effects onto small screens.",
+        "Aspect-locked media frames protect brand photography across every phone and widescreen display.",
         "Subtle motion and generous white space feel far more luxurious than heavy special effects.",
       ],
     },
@@ -250,8 +266,25 @@ export const projects: Project[] = [
     role: "Staff Frontend & Design System Lead",
     timeline: "8 Months",
     category: "Design Systems",
-    accent: "orange",
-    previewType: "workspace",
+    featured: true,
+    published: true,
+    media: {
+      coverImage: "/images/projects/kinetix-workspace.png",
+      alt: "Kinetix Studio collaborative multiplayer design system canvas and component inspector web app",
+      fit: "cover",
+      focalPoint: "top",
+      frameStyle: "floating",
+      surfaceTone: "light",
+      caption: "Floating clean-edge showcase avoiding double chrome on full-window app captures",
+    },
+    theme: {
+      preset: "cobalt",
+      accentColor: "#2563EB",
+      secondaryAccent: "#00D4BE",
+      surfaceColor: "#DFEAFF",
+      cardTone: "tinted",
+      accentInk: "#153A94",
+    },
     tagline:
       "A real-time collaborative design & component platform empowering 180,000+ makers to ship consistent products faster.",
     keyResult: "180k+ active users · 58% smaller code exports",

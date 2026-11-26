@@ -392,13 +392,22 @@ export function HowIBuildDeck() {
                   </span>
                 </div>
 
-                <h3 className="mt-4 text-h3 font-bold text-[var(--ink-obsidian)]">
+                <h3 className="mt-4 text-xl sm:text-h3 font-bold text-[var(--ink-obsidian)]">
                   {step.title}{" "}
                   <span className={`font-editorial italic font-normal ${theme.highlightClass}`}>
                     {step.highlight}
                   </span>
                 </h3>
-                <p className="mt-2.5 text-sm text-[#28363B]">{step.description}</p>
+                <p className="mt-2 text-sm text-[#28363B]">{step.description}</p>
+
+                <div className="mt-3.5 flex items-baseline gap-2.5 rounded-2xl border border-black/10 bg-white/85 px-4 py-2.5">
+                  <span className={`text-xl font-bold ${theme.highlightClass}`}>
+                    {step.statValue}
+                  </span>
+                  <span className="text-xs font-medium text-[var(--ink-slate)]">
+                    {step.statLabel}
+                  </span>
+                </div>
 
                 <ul className="mt-4 space-y-2 border-t border-black/10 pt-4">
                   {step.points.map((point) => (

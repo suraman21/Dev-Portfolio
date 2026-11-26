@@ -33,14 +33,14 @@
   --surface-obsidian: #0e171a;
 
   /* Continuous Fluid Typography (320px -> 2560px+) */
-  --text-hero: clamp(2.45rem, 1.3rem + 4vw, 5.4rem);
-  --text-h2: clamp(1.9rem, 1.2rem + 2.4vw, 3.6rem);
-  --text-h3: clamp(1.35rem, 1.05rem + 1.1vw, 2.05rem);
-  --text-body-lg: clamp(1.05rem, 0.98rem + 0.3vw, 1.24rem);
-  --text-body: clamp(0.975rem, 0.94rem + 0.16vw, 1.06rem);
+  --text-hero: clamp(2.1rem, 1.15rem + 4.1vw, 5.4rem);
+  --text-h2: clamp(1.65rem, 1.1rem + 2.4vw, 3.6rem);
+  --text-h3: clamp(1.28rem, 1rem + 1.1vw, 2.05rem);
+  --text-body-lg: clamp(1rem, 0.95rem + 0.3vw, 1.24rem);
+  --text-body: clamp(0.95rem, 0.92rem + 0.16vw, 1.06rem);
 
   /* Automatic Safe Margins */
-  --safe-x: clamp(1.25rem, 4.2vw, 4.5rem);
+  --safe-x: clamp(1rem, 4vw, 4.5rem);
   --max-shell: 1400px;
 
   /* Self-Hosted Fonts */
