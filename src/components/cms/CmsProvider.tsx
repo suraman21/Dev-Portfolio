@@ -31,7 +31,29 @@ export function CmsProvider({ children }: { children: React.ReactNode }) {
       if (!res.ok) return;
       const json = await res.json();
       if (json?.data) {
-        setData(json.data);
+        const d = json.data as Partial<CmsData>;
+        setData({
+          ...defaultCmsData,
+          ...d,
+          site: { ...defaultCmsData.site, ...(d.site || {}) },
+          about: { ...defaultCmsData.about, ...(d.about || {}) },
+          services: d.services && d.services.length > 0 ? d.services : defaultCmsData.services,
+          projects: d.projects && d.projects.length > 0 ? d.projects : defaultCmsData.projects,
+          buildSteps:
+            d.buildSteps && d.buildSteps.length > 0 ? d.buildSteps : defaultCmsData.buildSteps,
+          testimonials:
+            d.testimonials && d.testimonials.length > 0
+              ? d.testimonials
+              : defaultCmsData.testimonials,
+          experiences:
+            d.experiences && d.experiences.length > 0 ? d.experiences : defaultCmsData.experiences,
+          skillGroups:
+            d.skillGroups && d.skillGroups.length > 0 ? d.skillGroups : defaultCmsData.skillGroups,
+          mediaLibrary:
+            d.mediaLibrary && d.mediaLibrary.length > 0
+              ? d.mediaLibrary
+              : defaultCmsData.mediaLibrary,
+        });
       }
       if (json?.backend === "php-mysql" || json?.backend === "local-preview") {
         setBackend(json.backend);

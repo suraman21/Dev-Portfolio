@@ -1,13 +1,10 @@
 -- ============================================================================
--- Dev-Portfolio CMS — Production MySQL 8+ Relational Schema
+-- Dev-Portfolio CMS — Production MySQL 8 / MariaDB 10.6+ Schema
+-- cPanel phpMyAdmin Safe: Select your cPanel database first, then Import!
 -- Charset: utf8mb4 / Engine: InnoDB
 -- ============================================================================
 
-CREATE DATABASE IF NOT EXISTS `dev_portfolio_cms`
-  CHARACTER SET utf8mb4
-  COLLATE utf8mb4_unicode_ci;
-
-USE `dev_portfolio_cms`;
+SET NAMES utf8mb4;
 
 -- 1. Admin Users
 CREATE TABLE IF NOT EXISTS `admin_users` (
