@@ -116,7 +116,10 @@ export interface HeroStat {
   label: string;
 }
 
+export type ProfileImagePosition = "top" | "center" | "bottom";
+
 export interface SiteSettings {
+  // Brand & Developer Identity
   name: string;
   monogram: string;
   role: string;
@@ -125,27 +128,104 @@ export interface SiteSettings {
   email: string;
   github: string;
   linkedin: string;
+
+  // Developer Profile Portrait & Home Profile Spotlight
+  profileImage: string;
+  profileImageAlt: string;
+  profileImagePosition: ProfileImagePosition;
+  profileEyebrow: string;
+  profileHeadline: string;
+  profileHighlight: string;
+  profileBio: string;
+  profileHighlights: string[];
+  profilePrimaryCta: string;
+  profileSecondaryCta: string;
+  showHomeProfile: boolean;
+
+  // Home Hero
   heroTitle: string;
   heroHighlight: string;
   heroDescription: string;
+  heroPrimaryCta: string;
+  heroSecondaryCta: string;
+  heroScrollCue: string;
   heroStats: HeroStat[];
+
+  // Home Selected Work Section Copy
+  workReelEyebrow: string;
+  workReelHeadline: string;
+  workReelHighlight: string;
+  workReelEndEyebrow: string;
+  workReelEndHeadline: string;
+  workReelEndHighlight: string;
+  workReelEndDescription: string;
+  workReelEndCta: string;
+
+  // Home Testimonials & Closing CTA
+  testimonialsEyebrow: string;
+  testimonialsHeadline: string;
+  testimonialsHighlight: string;
   ctaHeadline: string;
   ctaHighlight: string;
   ctaDescription: string;
+  ctaButtonLabel: string;
+
+  // Work Page Header
+  workPageEyebrow: string;
+  workPageHeadline: string;
+  workPageHighlight: string;
+  workPageDescription: string;
+
+  // Footer
   footerHeadline: string;
   footerHighlight: string;
   footerBio: string;
+  footerCtaLabel: string;
+  footerCopyrightNote: string;
+
+  // Contact Page
   contactHeadline: string;
   contactHighlight: string;
   contactDescription: string;
   contactReplyNote: string;
+  contactSubmitLabel: string;
+  contactBudgetOptions: string[];
 }
 
 export interface AboutContent {
+  // Hero & Bio
   eyebrow: string;
   headline: string;
   highlight: string;
   bio: string;
+  secondaryBio: string;
+  primaryCtaLabel: string;
+  secondaryCtaLabel: string;
+
+  // Developer Portrait Card & Quick Overview
+  showProfileImage: boolean;
+  profileCardLabel: string;
+  profileCaption: string;
+  quickOverviewTitle: string;
+
+  // Services Section on About Page
+  showServices: boolean;
+  servicesEyebrow: string;
+  servicesHeadline: string;
+  servicesHighlight: string;
+  servicesLinkLabel: string;
+
+  // Experience Section on About Page
+  showExperience: boolean;
+  experienceEyebrow: string;
+  experienceHeadline: string;
+  experienceHighlight: string;
+
+  // Core Skills Section on About Page
+  showSkills: boolean;
+  skillsEyebrow: string;
+  skillsHeadline: string;
+  skillsHighlight: string;
 }
 
 export interface ServiceItem {

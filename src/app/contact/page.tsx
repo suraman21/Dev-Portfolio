@@ -26,8 +26,16 @@ function ContactFormInner() {
     [services]
   );
 
+  const budgetOptions = useMemo(
+    () =>
+      site.contactBudgetOptions && site.contactBudgetOptions.length > 0
+        ? site.contactBudgetOptions
+        : BUDGET_OPTIONS,
+    [site.contactBudgetOptions]
+  );
+
   const [selectedServiceId, setSelectedServiceId] = useState<string>("");
-  const [budget, setBudget] = useState<string>(BUDGET_OPTIONS[0]);
+  const [budget, setBudget] = useState<string>(budgetOptions[0]);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [message, setMessage] = useState("");
@@ -240,7 +248,7 @@ function ContactFormInner() {
                         onChange={(e) => setBudget(e.target.value)}
                         className="w-full appearance-none rounded-2xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] py-3.5 pl-4 pr-11 text-sm text-[var(--ink-obsidian)] transition-colors focus:border-[var(--teal-deep)] focus:bg-white focus:outline-none cursor-pointer"
                       >
-                        {BUDGET_OPTIONS.map((opt) => (
+                        {budgetOptions.map((opt) => (
                           <option key={opt} value={opt}>
                             {opt}
                           </option>
@@ -313,7 +321,8 @@ function ContactFormInner() {
                   <div className="flex flex-wrap items-center justify-between gap-4 pt-1">
                     <span className="text-xs text-[var(--ink-muted)]">{site.contactReplyNote}</span>
                     <MagneticButton type="submit" variant="primary" disabled={submitting}>
-                      {submitting ? "Sending..." : "Send Message"} <Send className="h-4 w-4" />
+                      {submitting ? "Sending..." : site.contactSubmitLabel || "Send Message"}{" "}
+                      <Send className="h-4 w-4" />
                     </MagneticButton>
                   </div>
                 </form>

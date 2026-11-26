@@ -13,30 +13,117 @@ export const defaultCmsData: CmsData = {
     email: siteConfig.email,
     github: siteConfig.github,
     linkedin: siteConfig.linkedin,
+
+    // Developer Portrait & Home Profile Spotlight
+    profileImage: "/images/developer-profile.png",
+    profileImageAlt: `${siteConfig.name} — ${siteConfig.role}`,
+    profileImagePosition: "top",
+    profileEyebrow: "Meet the Developer",
+    profileHeadline: "Engineering depth paired with",
+    profileHighlight: "taste & clarity.",
+    profileBio:
+      "I partner directly with founders, product leaders, and engineering teams to take ambitious SaaS products and flagship websites from concept to crisp, production-hardened reality.",
+    profileHighlights: [
+      "8+ years shipping full-stack SaaS & web platforms",
+      "Direct founder-to-engineer collaboration — zero agency layers",
+      "Obsessed with speed, clean architecture, and luxury UI craft",
+    ],
+    profilePrimaryCta: "Full Bio & Experience",
+    profileSecondaryCta: "Start a Conversation",
+    showHomeProfile: true,
+
+    // Home Hero
     heroTitle: "I build fast SaaS products &",
     heroHighlight: "luxury websites.",
     heroDescription:
       "I help startups and growing companies turn complex ideas into fast, reliable software and memorable web experiences that feel effortless on every screen.",
+    heroPrimaryCta: "View Selected Work",
+    heroSecondaryCta: "Start a Conversation",
+    heroScrollCue: "Scroll to see how I build",
     heroStats: [...siteConfig.heroStats],
+
+    // Home Selected Work Reel
+    workReelEyebrow: "Selected Work",
+    workReelHeadline: "Featured",
+    workReelHighlight: "Products",
+    workReelEndEyebrow: "All Projects",
+    workReelEndHeadline: "Want to see the full",
+    workReelEndHighlight: "portfolio?",
+    workReelEndDescription:
+      "Browse every shipped SaaS dashboard, luxury website, and design system with real product imagery and engineering breakdowns.",
+    workReelEndCta: "Browse All Work",
+
+    // Home Testimonials & Closing CTA
+    testimonialsEyebrow: "Client Feedback",
+    testimonialsHeadline: "What teams say after",
+    testimonialsHighlight: "shipping together.",
     ctaHeadline: "Have a product or role in mind?",
     ctaHighlight: "Let's build it right.",
     ctaDescription:
       "Whether you're hiring a senior engineer or launching a new flagship SaaS or website, I'd love to hear what you're working on.",
+    ctaButtonLabel: "Start a Conversation",
+
+    // Work Page Header
+    workPageEyebrow: "Selected Work",
+    workPageHeadline: "Products & websites built for",
+    workPageHighlight: "real impact.",
+    workPageDescription:
+      "A curated collection of SaaS platforms, luxury storefronts, and design systems — each presented with its own real product visuals, adaptive palette, and measurable results.",
+
+    // Footer
     footerHeadline: "Building products with",
     footerHighlight: "clarity & speed.",
     footerBio:
       "Designing and engineering fast, reliable SaaS platforms and modern luxury websites for ambitious teams worldwide.",
+    footerCtaLabel: "Start a Project",
+    footerCopyrightNote: "Crafted with care.",
+
+    // Contact Page
     contactHeadline: "Let's work",
     contactHighlight: "together.",
     contactDescription:
       "Share a quick overview of your product, service needs, or timeline. I reply personally to every message within 24 hours.",
     contactReplyNote: "Usually replies within 24 hours",
+    contactSubmitLabel: "Send Message",
+    contactBudgetOptions: [
+      "Not sure yet / Let's discuss",
+      "Under $5,000",
+      "$5,000 – $15,000",
+      "$15,000 – $35,000",
+      "$35,000+",
+      "Full-Time Compensation",
+    ],
   },
   about: {
     eyebrow: "About Me",
     headline: "Senior engineering rigor with an eye for",
     highlight: "luxury craft.",
     bio: "I'm Sura Aman, a Senior Software Engineer and Web Developer with over 8 years of experience building scalable SaaS products and high-converting websites. I enjoy bridging the gap between backend reliability and smooth, intuitive design so products feel great for real people.",
+    secondaryBio:
+      "Every engagement combines pragmatic architecture, measurable Core Web Vitals performance, and clean editorial polish — whether leading a full-stack product launch or leveling up an existing platform.",
+    primaryCtaLabel: "See Selected Work",
+    secondaryCtaLabel: "Get in Touch",
+
+    showProfileImage: true,
+    profileCardLabel: "Developer Portrait",
+    profileCaption: "Working remotely with ambitious founders and product teams worldwide.",
+    quickOverviewTitle: "Quick Overview",
+
+    showServices: true,
+    servicesEyebrow: "Services",
+    servicesHeadline: "How we can",
+    servicesHighlight: "work together.",
+    servicesLinkLabel: "Request a service →",
+
+    showExperience: true,
+    experienceEyebrow: "Experience",
+    experienceHeadline: "Where I've",
+    experienceHighlight: "shipped work.",
+
+    showSkills: true,
+    skillsEyebrow: "Core Capabilities",
+    skillsHeadline: "Tools &",
+    skillsHighlight: "Expertise",
   },
   services: [
     {
@@ -111,6 +198,14 @@ export const defaultCmsData: CmsData = {
     id: `skill-${idx + 1}`,
   })),
   mediaLibrary: [
+    {
+      id: "media-profile",
+      filename: "developer-profile.png",
+      url: "/images/developer-profile.png",
+      alt: `${siteConfig.name} developer studio portrait`,
+      mimeType: "image/png",
+      createdAt: "2026-11-25T10:00:00.000Z",
+    },
     {
       id: "media-1",
       filename: "aether-cloud.png",

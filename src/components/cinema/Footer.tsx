@@ -57,7 +57,7 @@ export function Footer() {
 
               <div className="flex flex-wrap items-center gap-3">
                 <MagneticButton href="/contact" variant="primary">
-                  Start a Project <ArrowUpRight className="h-4 w-4" />
+                  {site.footerCtaLabel || "Start a Project"} <ArrowUpRight className="h-4 w-4" />
                 </MagneticButton>
                 <button
                   type="button"
@@ -179,7 +179,10 @@ export function Footer() {
 
             {/* Bottom Legal & Admin Access Bar */}
             <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-[var(--ink-muted)]">
-              <span>© {new Date().getFullYear()} {site.name}. Crafted with care.</span>
+              <span>
+                © {new Date().getFullYear()} {site.name}.{" "}
+                {site.footerCopyrightNote || "Crafted with care."}
+              </span>
               <div className="flex items-center gap-4">
                 <span className="hidden sm:inline font-mono text-[11px] text-[var(--teal-deep)]">
                   24 FPS · Responsive Mobile to 4K

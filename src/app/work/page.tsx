@@ -31,17 +31,17 @@ export default function WorkPage() {
       <div className="shell">
         <header className="max-w-3xl pb-8 sm:pb-10 border-b border-[var(--border-mineral)]">
           <span className="text-xs font-semibold uppercase tracking-wider text-[var(--orange-lacquer)]">
-            Selected Work
+            {data.site.workPageEyebrow || "Selected Work"}
           </span>
           <h1 className="mt-3 text-hero font-bold text-[var(--ink-obsidian)]">
-            Products &amp; websites built for{" "}
+            {data.site.workPageHeadline || "Products & websites built for"}{" "}
             <span className="font-editorial italic font-normal text-[var(--teal-deep)]">
-              real impact.
+              {data.site.workPageHighlight || "real impact."}
             </span>
           </h1>
           <p className="mt-4 text-body-lg text-[var(--ink-slate)] max-w-[56ch]">
-            A curated collection of SaaS platforms, luxury storefronts, and design systems — each
-            presented with its own real product visuals, adaptive palette, and measurable results.
+            {data.site.workPageDescription ||
+              "A curated collection of SaaS platforms, luxury storefronts, and design systems — each presented with its own real product visuals, adaptive palette, and measurable results."}
           </p>
 
           <div className="mt-6 sm:mt-7 flex flex-wrap gap-2">
