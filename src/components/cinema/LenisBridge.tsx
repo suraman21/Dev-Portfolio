@@ -12,8 +12,12 @@ export function LenisBridge() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
+    // Prevent mobile Safari/Chrome dynamic address-bar resizes from breaking
+    // pinned vertical-to-horizontal scroll stages or causing layout jumps.
+    ScrollTrigger.config({ ignoreMobileResize: true });
+
     // 24 FPS cadence creates crisp, authentic real-looking motion speed
-    // and keeps CPU/GPU overhead light across every device.
+    // and keeps CPU/GPU overhead light across mobile and desktop.
     gsap.ticker.fps(24);
 
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -27,7 +31,7 @@ export function LenisBridge() {
       easing: (t) => 1 - Math.pow(1 - t, 3),
       smoothWheel: true,
       wheelMultiplier: 1.25,
-      touchMultiplier: 1.45,
+      touchMultiplier: 1.35,
       autoRaf: false,
     });
 
@@ -44,8 +48,13 @@ export function LenisBridge() {
       document.fonts.ready.then(() => ScrollTrigger.refresh());
     }
 
+    // Only refresh ScrollTrigger when viewport width actually changes
+    // (ignores mobile vertical address-bar show/hide height changes).
+    let lastWidth = window.innerWidth;
     let timer: ReturnType<typeof setTimeout>;
     const onResize = () => {
+      if (window.innerWidth === lastWidth) return;
+      lastWidth = window.innerWidth;
       clearTimeout(timer);
       timer = setTimeout(() => ScrollTrigger.refresh(), 220);
     };
@@ -61,7 +70,7 @@ export function LenisBridge() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-    const t = setTimeout(() => ScrollTrigger.refresh(), 80);
+    const t = setTimeout(() => ScrollTrigger.refresh(), 90);
     return () => clearTimeout(t);
   }, [pathname]);
 
