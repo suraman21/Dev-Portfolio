@@ -98,7 +98,7 @@ CREATE TABLE IF NOT EXISTS `build_steps` (
   `title` VARCHAR(220) NOT NULL,
   `highlight` VARCHAR(140) NOT NULL,
   `description` TEXT NOT NULL,
-  `accent` ENUM('teal', 'orange', 'cobalt') NOT NULL DEFAULT 'teal',
+  `accent` VARCHAR(40) NOT NULL DEFAULT 'default',
   `points_json` JSON NOT NULL,
   `stat_value` VARCHAR(60) NOT NULL DEFAULT '',
   `stat_label` VARCHAR(160) NOT NULL DEFAULT '',

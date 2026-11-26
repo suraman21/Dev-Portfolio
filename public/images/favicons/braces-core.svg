@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg-brace" x1="6" y1="4" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#162328" />
+      <stop offset="100%" stop-color="#0B1114" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg-brace)" stroke="#243840" stroke-width="2" />
+  <path d="M24 16C19.5 16 18 18.2 18 22V26.5C18 29.5 15.8 31.2 13 32C15.8 32.8 18 34.5 18 37.5V42C18 45.8 19.5 48 24 48" stroke="#00F5D4" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M40 16C44.5 16 46 18.2 46 22V26.5C46 29.5 48.2 31.2 51 32C48.2 32.8 46 34.5 46 37.5V42C46 45.8 44.5 48 40 48" stroke="#00F5D4" stroke-width="4.8" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="32" cy="32" r="5.5" fill="#FF6B00" />
+</svg>

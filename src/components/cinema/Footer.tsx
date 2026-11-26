@@ -2,11 +2,12 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowUpRight, Check, Copy, Lock, MapPin } from "lucide-react";
+import { ArrowUpRight, Check, Copy, MapPin } from "lucide-react";
 import { siteConfig } from "@/data/site";
 import { useCms } from "@/components/cms/CmsProvider";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 import { BrandAvatar } from "@/components/ui/BrandAvatar";
+import { resolveActiveSocials } from "@/lib/social-links";
 
 /**
  * Architectural Luxury Footer — Seamlessly Matches the Warm Alabaster,
@@ -18,6 +19,7 @@ export function Footer() {
   const [copied, setCopied] = useState(false);
 
   const activeServices = services.filter((s) => s.active).slice(0, 4);
+  const { githubUrl, linkedinUrl, whatsappUrl, telegramUrl } = resolveActiveSocials(site);
 
   const copyEmail = () => {
     navigator.clipboard?.writeText(site.email);
@@ -145,32 +147,60 @@ export function Footer() {
                 </ul>
               </div>
 
-              {/* Connect Column */}
+              {/* Connect Column (Respects Admin Panel Social On/Off Toggles) */}
               <div className="lg:col-span-2 space-y-3">
                 <div className="text-xs font-bold uppercase tracking-wider text-[var(--ink-muted)]">
                   Connect
                 </div>
                 <ul className="space-y-2.5 text-sm font-medium">
-                  <li>
-                    <a
-                      href={site.github}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-[var(--ink-obsidian)] hover:text-[var(--teal-deep)] transition-colors"
-                    >
-                      GitHub <ArrowUpRight className="h-3.5 w-3.5" />
-                    </a>
-                  </li>
-                  <li>
-                    <a
-                      href={site.linkedin}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="inline-flex items-center gap-1 text-[var(--ink-obsidian)] hover:text-[var(--teal-deep)] transition-colors"
-                    >
-                      LinkedIn <ArrowUpRight className="h-3.5 w-3.5" />
-                    </a>
-                  </li>
+                  {githubUrl && (
+                    <li>
+                      <a
+                        href={githubUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[var(--ink-obsidian)] hover:text-[var(--teal-deep)] transition-colors"
+                      >
+                        GitHub <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    </li>
+                  )}
+                  {linkedinUrl && (
+                    <li>
+                      <a
+                        href={linkedinUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[var(--ink-obsidian)] hover:text-[var(--teal-deep)] transition-colors"
+                      >
+                        LinkedIn <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    </li>
+                  )}
+                  {whatsappUrl && (
+                    <li>
+                      <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[var(--ink-obsidian)] hover:text-[#16A34A] transition-colors"
+                      >
+                        WhatsApp <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    </li>
+                  )}
+                  {telegramUrl && (
+                    <li>
+                      <a
+                        href={telegramUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 text-[var(--ink-obsidian)] hover:text-[#0284C7] transition-colors"
+                      >
+                        Telegram <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    </li>
+                  )}
                   <li>
                     <a
                       href={`mailto:${site.email}`}
@@ -183,23 +213,15 @@ export function Footer() {
               </div>
             </div>
 
-            {/* Bottom Legal & Admin Access Bar */}
+            {/* Bottom Legal Bar (Public site — no Admin Panel link exposed) */}
             <div className="mt-6 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-[var(--ink-muted)]">
               <span>
                 © {new Date().getFullYear()} {site.name}.{" "}
                 {site.footerCopyrightNote || "Crafted with care."}
               </span>
-              <div className="flex items-center gap-4">
-                <span className="hidden sm:inline font-mono text-[11px] text-[var(--teal-deep)]">
-                  24 FPS · Responsive Mobile to 4K
-                </span>
-                <Link
-                  href="/app"
-                  className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-mineral)] bg-white/80 px-3 py-1 text-[11px] font-semibold text-[var(--ink-slate)] hover:border-[var(--ink-obsidian)] hover:text-[var(--ink-obsidian)] transition-colors"
-                >
-                  <Lock className="h-3 w-3 text-[var(--orange-lacquer)]" /> Admin Panel
-                </Link>
-              </div>
+              <span className="font-mono text-[11px] text-[var(--teal-deep)]">
+                24 FPS · Responsive Mobile to 4K
+              </span>
             </div>
           </div>
         </div>

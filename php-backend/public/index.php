@@ -164,16 +164,30 @@ try {
 
         $finfo = new finfo(FILEINFO_MIME_TYPE);
         $mime = $finfo->file($file['tmp_name']) ?: '';
+        $origExt = strtolower((string) pathinfo($file['name'], PATHINFO_EXTENSION));
         $allowedMimes = [
             'image/jpeg' => 'jpg',
             'image/png' => 'png',
             'image/webp' => 'webp',
             'image/gif' => 'gif',
             'image/avif' => 'avif',
+            'image/svg+xml' => 'svg',
+            'image/svg' => 'svg',
+            'image/x-icon' => 'ico',
+            'image/vnd.microsoft.icon' => 'ico',
         ];
 
-        if (!isset($allowedMimes[$mime])) {
-            jsonResponse(['error' => 'Unsupported image format. Use JPG, PNG, WebP, GIF, or AVIF.'], 415);
+        $ext = $allowedMimes[$mime] ?? null;
+        if ($ext === null && $origExt === 'svg' && in_array($mime, ['text/plain', 'text/xml', 'application/xml', 'text/html'], true)) {
+            $ext = 'svg';
+            $mime = 'image/svg+xml';
+        } elseif ($ext === null && $origExt === 'ico' && $mime === 'application/octet-stream') {
+            $ext = 'ico';
+            $mime = 'image/x-icon';
+        }
+
+        if ($ext === null) {
+            jsonResponse(['error' => 'Unsupported image format. Use PNG, SVG, ICO, JPG, WebP, GIF, or AVIF.'], 415);
         }
 
         $uploadDir = resolveUploadDir();
@@ -183,11 +197,27 @@ try {
 
         $safeBase = preg_replace('/[^a-zA-Z0-9_-]/', '-', pathinfo($file['name'], PATHINFO_FILENAME));
         $safeBase = trim((string) $safeBase, '-') ?: 'product-image';
-        $filename = $safeBase . '-' . bin2hex(random_bytes(4)) . '.' . $allowedMimes[$mime];
+        $filename = $safeBase . '-' . bin2hex(random_bytes(4)) . '.' . $ext;
         $destPath = $uploadDir . '/' . $filename;
 
-        if (!move_uploaded_file($file['tmp_name'], $destPath)) {
-            jsonResponse(['error' => 'Failed to save uploaded image. Check uploads/ folder permissions.'], 500);
+        if ($ext === 'svg') {
+            $rawSvg = file_get_contents($file['tmp_name']);
+            if ($rawSvg === false || !preg_match('/<svg[\s>]/i', $rawSvg)) {
+                jsonResponse(['error' => 'Invalid SVG file.'], 422);
+            }
+            $sanitizedSvg = preg_replace('/<script[\s\S]*?<\/script>/i', '', $rawSvg) ?? '';
+            $sanitizedSvg = preg_replace('/<foreignObject[\s\S]*?<\/foreignObject>/i', '', $sanitizedSvg) ?? '';
+            $sanitizedSvg = preg_replace('/\son[a-z]+\s*=\s*(?:"[^"]*"|\'[^\']*\'|[^\s>]+)/i', '', $sanitizedSvg) ?? '';
+            $sanitizedSvg = preg_replace('/javascript:/i', '', $sanitizedSvg) ?? '';
+            if (file_put_contents($destPath, $sanitizedSvg) === false) {
+                jsonResponse(['error' => 'Failed to save uploaded SVG. Check uploads/ folder permissions.'], 500);
+            }
+            $savedSize = strlen($sanitizedSvg);
+        } else {
+            if (!move_uploaded_file($file['tmp_name'], $destPath)) {
+                jsonResponse(['error' => 'Failed to save uploaded image. Check uploads/ folder permissions.'], 500);
+            }
+            $savedSize = (int) $file['size'];
         }
 
         $publicBase = rtrim(Database::env('PUBLIC_BASE_URL', ''), '/');
@@ -199,7 +229,7 @@ try {
             'url' => $url,
             'alt' => trim((string) ($_POST['alt'] ?? $safeBase)),
             'mimeType' => $mime,
-            'sizeBytes' => (int) $file['size'],
+            'sizeBytes' => $savedSize,
             'createdAt' => gmdate('c'),
         ]);
 

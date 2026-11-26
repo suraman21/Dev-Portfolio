@@ -35,6 +35,10 @@ export function CmsProvider({ children }: { children: React.ReactNode }) {
         const mergedSite = {
           ...defaultCmsData.site,
           ...(d.site || {}),
+          faviconUrl:
+            d.site?.faviconUrl && d.site.faviconUrl.trim()
+              ? d.site.faviconUrl.trim()
+              : defaultCmsData.site.faviconUrl,
           heroStats:
             d.site?.heroStats && d.site.heroStats.length > 0
               ? d.site.heroStats

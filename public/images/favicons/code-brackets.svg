@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" fill="none">
+  <defs>
+    <linearGradient id="bg-code" x1="6" y1="4" x2="58" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#162328" />
+      <stop offset="100%" stop-color="#0B1114" />
+    </linearGradient>
+    <linearGradient id="slash-glow" x1="36" y1="15" x2="28" y2="49" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#FF8C33" />
+      <stop offset="100%" stop-color="#FF5E00" />
+    </linearGradient>
+    <linearGradient id="teal-bracket" x1="12" y1="20" x2="52" y2="44" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#33FFE2" />
+      <stop offset="100%" stop-color="#00D9BC" />
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="60" height="60" rx="16" fill="url(#bg-code)" stroke="#243840" stroke-width="2" />
+  <rect x="4" y="4" width="56" height="56" rx="14" stroke="#00F5D4" stroke-opacity="0.14" stroke-width="1" />
+  <path d="M23 21L12.5 32L23 43" stroke="url(#teal-bracket)" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M41 21L51.5 32L41 43" stroke="url(#teal-bracket)" stroke-width="5.2" stroke-linecap="round" stroke-linejoin="round" />
+  <path d="M35.5 16.5L28.5 47.5" stroke="url(#slash-glow)" stroke-width="5.2" stroke-linecap="round" />
+</svg>
