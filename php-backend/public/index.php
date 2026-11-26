@@ -46,10 +46,15 @@ function resolveUploadDir(): string
     if ($configured !== '') {
         return rtrim($configured, '/');
     }
-    // On cPanel `public_html/api/public/index.php`, store uploads directly in `public_html/uploads`
-    $cpanelRootUploads = dirname(__DIR__, 2) . '/uploads';
-    if (is_dir($cpanelRootUploads) || is_file(dirname(__DIR__, 2) . '/index.html')) {
-        return $cpanelRootUploads;
+    // Primary cPanel layout: `/app` sibling to `/public` -> save images to `/public/uploads`
+    $siblingPublicUploads = dirname(__DIR__, 2) . '/public/uploads';
+    if (is_dir($siblingPublicUploads) || is_dir(dirname(__DIR__, 2) . '/public')) {
+        return $siblingPublicUploads;
+    }
+    // Fallback layout if API lives inside webroot
+    $rootUploads = dirname(__DIR__, 2) . '/uploads';
+    if (is_dir($rootUploads)) {
+        return $rootUploads;
     }
     return __DIR__ . '/uploads';
 }

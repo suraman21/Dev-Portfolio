@@ -394,6 +394,7 @@ final class CmsRepository
         if ($row && !empty($row['filename'])) {
             $safeName = basename($row['filename']);
             $candidates = [
+                dirname(__DIR__, 2) . '/public/uploads/' . $safeName,
                 dirname(__DIR__, 2) . '/uploads/' . $safeName,
                 dirname(__DIR__) . '/public/uploads/' . $safeName,
             ];
