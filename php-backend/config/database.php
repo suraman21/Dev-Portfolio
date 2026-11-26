@@ -30,6 +30,11 @@ final class Database
         return self::$config;
     }
 
+    public static function hasConfigFile(): bool
+    {
+        return is_file(dirname(__DIR__) . '/config.php');
+    }
+
     /** Backwards-compatible alias kept for callers */
     public static function loadEnv(?string $path = null): void
     {
@@ -66,6 +71,12 @@ final class Database
     {
         if (self::$instance instanceof PDO) {
             return self::$instance;
+        }
+
+        if (!self::hasConfigFile() && getenv('DB_HOST') === false) {
+            throw new RuntimeException(
+                'Missing app/config.php. Run `cp app/config.example.php app/config.php` and enter your cPanel MySQL credentials.'
+            );
         }
 
         $host = self::env('DB_HOST', 'localhost');

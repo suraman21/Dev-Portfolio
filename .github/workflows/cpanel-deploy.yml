@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   build-and-deploy:
@@ -47,6 +47,44 @@ jobs:
           path: cpanel-deploy.zip
           retention-days: 30
 
+      # Publish ready-to-serve /public + /app to the `cpanel-deploy` branch so you can
+      # run `git clone -b cpanel-deploy` and `git pull` directly in cPanel Terminal!
+      - name: Publish built /public + /app to cpanel-deploy branch (for cPanel git clone / git pull)
+        if: github.event_name == 'push' || github.event_name == 'workflow_dispatch'
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          rm -rf /tmp/cpanel-deploy-repo
+          git config --global user.name "github-actions[bot]"
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          REMOTE_URL="https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          if git ls-remote --exit-code --heads "$REMOTE_URL" cpanel-deploy >/dev/null 2>&1; then
+            git clone --branch cpanel-deploy --single-branch --depth 1 "$REMOTE_URL" /tmp/cpanel-deploy-repo
+          else
+            git init /tmp/cpanel-deploy-repo
+            git -C /tmp/cpanel-deploy-repo checkout -b cpanel-deploy
+            git -C /tmp/cpanel-deploy-repo remote add origin "$REMOTE_URL"
+          fi
+
+          # Sync freshly built /public + /app + .gitignore while keeping .git history intact
+          find /tmp/cpanel-deploy-repo -mindepth 1 -maxdepth 1 ! -name '.git' -exec rm -rf {} +
+          cp -a cpanel-dist/. /tmp/cpanel-deploy-repo/
+
+          # Never track app/config.php in the deploy branch so `git pull` on cPanel never conflicts!
+          # Users run `cp app/config.example.php app/config.php` once on cPanel.
+          rm -f /tmp/cpanel-deploy-repo/app/config.php
+
+          cd /tmp/cpanel-deploy-repo
+          git add -A
+          if git diff --cached --quiet; then
+            echo "No changes to publish to cpanel-deploy."
+          else
+            git commit -m "Build /public + /app from ${GITHUB_SHA::7}"
+            git push origin cpanel-deploy
+          fi
+
       - name: Check if optional FTPS secrets are configured
         id: ftp_check
         env:
@@ -58,7 +96,7 @@ jobs:
             echo "enabled=true" >> "$GITHUB_OUTPUT"
           else
             echo "enabled=false" >> "$GITHUB_OUTPUT"
-            echo "FTPS secrets not configured — skipping auto-deploy. Download cpanel-deploy-zip from Artifacts above."
+            echo "FTPS secrets not configured — skipping FTPS auto-deploy. Use cPanel git pull (cpanel-deploy branch) or download cpanel-deploy-zip."
           fi
 
       # Optional Auto-Deploy straight to cPanel (main domain OR subdomain folder)
