@@ -4,7 +4,7 @@ export interface BuildStep {
   title: string;
   highlight: string;
   description: string;
-  accent: "teal" | "orange";
+  accent: "teal" | "orange" | "cobalt";
   points: string[];
   statValue: string;
   statLabel: string;
@@ -36,7 +36,7 @@ export const buildSteps: BuildStep[] = [
     highlight: "reliability.",
     description:
       "Luxury disappears the moment a site lags or breaks. I engineer clean full-stack architectures — resilient APIs, fast databases, strict TypeScript, and edge caching — so your product stays rock-solid as you scale.",
-    accent: "teal",
+    accent: "orange",
     points: [
       "Sub-second page loads and instant button feedback",
       "Scalable backend APIs, databases, and clean TypeScript codebases",
@@ -52,15 +52,15 @@ export const buildSteps: BuildStep[] = [
     title: "Crafted with movement that feels",
     highlight: "alive.",
     description:
-      "The difference between good software and unforgettable software lives in the details — smooth scroll pacing, subtle tactile animations, warm lighting, and purposeful interactive 3D that elevates your brand without getting in the way.",
-    accent: "orange",
+      "The difference between good software and unforgettable software lives in the details — crisp 24fps pacing, subtle tactile animations, warm lighting, and purposeful interactive 3D that elevates your brand without getting in the way.",
+    accent: "cobalt",
     points: [
-      "Butter-smooth 60fps transitions and spring micro-interactions",
+      "Crisp 24fps real-speed transitions and spring micro-interactions",
       "Restrained, high-taste visual design that makes your brand look unmistakable",
       "Purposeful interactive 3D moments that tell a story without slowing the page",
     ],
-    statValue: "60fps",
-    statLabel: "Fluid motion across devices",
+    statValue: "24 fps",
+    statLabel: "Natural filmic motion speed",
     visualType: "craft",
   },
 ];
@@ -195,7 +195,7 @@ export const skillGroups = [
       "Lenis Smooth Scroll",
       "Three.js & React Three Fiber",
       "Micro-Interactions",
-      "60fps GPU Optimization",
+      "24fps Filmic Pacing & GPU Tuning",
     ],
   },
 ];

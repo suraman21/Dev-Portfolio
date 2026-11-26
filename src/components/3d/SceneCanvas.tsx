@@ -1,7 +1,7 @@
 "use client";
 
 import React, { Component, Suspense, useEffect, useState } from "react";
-import { Canvas } from "@react-three/fiber";
+import { Canvas, useThree } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -23,6 +23,40 @@ class CanvasErrorBoundary extends Component<
     if (this.state.hasError) return this.props.fallback;
     return this.props.children;
   }
+}
+
+/**
+ * Precision 24 FPS Frame Pacer
+ * Runs the 3D scene at a crisp, real-looking 24fps filmic cadence (41.67ms/frame)
+ * using R3F `frameloop="demand"` — cuts GPU overhead by ~60% while delivering
+ * authentic cinematic motion speed. Automatically pauses when tab is hidden.
+ */
+function FramePacer({ fps = 24 }: { fps?: number }) {
+  const invalidate = useThree((s) => s.invalidate);
+
+  useEffect(() => {
+    const frameInterval = 1000 / fps;
+    let rafId = 0;
+    let lastTime = 0;
+
+    const tick = (now: number) => {
+      rafId = window.requestAnimationFrame(tick);
+      if (document.hidden) return;
+      if (now - lastTime >= frameInterval) {
+        lastTime = now - ((now - lastTime) % frameInterval);
+        invalidate();
+      }
+    };
+
+    invalidate();
+    rafId = window.requestAnimationFrame(tick);
+
+    return () => {
+      window.cancelAnimationFrame(rafId);
+    };
+  }, [fps, invalidate]);
+
+  return null;
 }
 
 function OpticalFallback({ label }: { label?: string }) {
@@ -54,6 +88,7 @@ interface SceneCanvasProps {
   children: React.ReactNode;
   cameraPosition?: [number, number, number];
   fov?: number;
+  fps?: number;
   className?: string;
   fallbackLabel?: string;
 }
@@ -62,12 +97,13 @@ export function SceneCanvas({
   children,
   cameraPosition = [0, 0.35, 5.4],
   fov = 38,
+  fps = 24,
   className = "",
   fallbackLabel,
 }: SceneCanvasProps) {
   const [mounted, setMounted] = useState(false);
   const [webglReady, setWebglReady] = useState(true);
-  const [dpr, setDpr] = useState<[number, number]>([1, 2]);
+  const [dpr, setDpr] = useState<[number, number]>([1, 1.75]);
 
   useEffect(() => {
     setMounted(true);
@@ -90,6 +126,7 @@ export function SceneCanvas({
     <div className={`relative h-full w-full ${className}`}>
       <CanvasErrorBoundary fallback={fallback}>
         <Canvas
+          frameloop="demand"
           dpr={dpr}
           camera={{ position: cameraPosition, fov, near: 0.1, far: 80 }}
           gl={{
@@ -97,13 +134,14 @@ export function SceneCanvas({
             alpha: true,
             powerPreference: "high-performance",
             toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.06,
+            toneMappingExposure: 1.08,
           }}
           style={{ background: "transparent" }}
         >
+          <FramePacer fps={fps} />
           <PerformanceMonitor
             onDecline={() => setDpr([1, 1.25])}
-            onIncline={() => setDpr([1, 2])}
+            onIncline={() => setDpr([1, 1.75])}
           />
           <Suspense fallback={null}>{children}</Suspense>
         </Canvas>

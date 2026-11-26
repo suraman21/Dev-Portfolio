@@ -1,8 +1,8 @@
 "use client";
 
-import { useRef } from "react";
+import { useMemo, useRef } from "react";
 import { useFrame } from "@react-three/fiber";
-import { Float, OrbitControls, RoundedBox } from "@react-three/drei";
+import { OrbitControls, RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
 import { StudioLighting } from "./StudioLighting";
 
@@ -12,297 +12,382 @@ interface HeroWorkspace3DProps {
 }
 
 /**
- * Signature Interactive 3D Hero Centerpiece — "Layered SaaS Product Craft"
- * Tells a story any client or recruiter immediately understands:
- *   - Back Plate: Dark obsidian & titanium Cloud/API Foundation (Teal signals)
- *   - Main Frame: Matte porcelain SaaS Web Window with live 3D bar charts & Orange CTA
- *   - Front Floating Glass Cards: Tactile KPI & user-experience overlays
- * Drag to orbit or click to smoothly separate the layers.
+ * Replacement Signature 3D Hero Model — "Precision Studio Workstation & Kinetic Core"
+ * A sculpted porcelain-and-obsidian luxury laptop floating in sunlit gallery lighting,
+ * paired with a hovering dual-axis Neon Teal + Neon Orange gyroscope core that
+ * visualizes how interface design, APIs, and cloud architecture orbit as one machine.
+ *
+ * Tuned for crisp 24 FPS filmic motion cadence with lightweight PBR materials.
  */
 export function HeroWorkspace3D({
   layeredView,
   onToggleLayers,
 }: HeroWorkspace3DProps) {
   const rootRef = useRef<THREE.Group>(null);
-  const backLayerRef = useRef<THREE.Group>(null);
-  const mainLayerRef = useRef<THREE.Group>(null);
-  const frontCardLeftRef = useRef<THREE.Group>(null);
-  const frontCardRightRef = useRef<THREE.Group>(null);
-  const barRefs = useRef<(THREE.Mesh | null)[]>([]);
+  const lidRef = useRef<THREE.Group>(null);
+  const coreGroupRef = useRef<THREE.Group>(null);
+  const gemRef = useRef<THREE.Mesh>(null);
+  const tealRingRef = useRef<THREE.Mesh>(null);
+  const orangeRingRef = useRef<THREE.Mesh>(null);
+  const orbitNodesRef = useRef<THREE.Group>(null);
+  const pulseBarRef = useRef<THREE.Mesh>(null);
 
-  const barHeights = [0.36, 0.54, 0.44, 0.72, 0.88];
+  // Precompute tactile low-profile keyboard key coordinates once
+  const keys = useMemo(() => {
+    const items: { x: number; z: number; w: number; color: string; glow?: boolean }[] = [];
+    const rows = 4;
+    const cols = 10;
+    const startX = -0.86;
+    const startZ = -0.34;
+    const gapX = 0.19;
+    const gapZ = 0.165;
 
-  useFrame((state, delta) => {
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        // Spacebar on bottom row middle
+        if (r === 3 && c >= 3 && c <= 6) {
+          if (c === 3) {
+            items.push({
+              x: startX + 4.5 * gapX,
+              z: startZ + r * gapZ,
+              w: 0.7,
+              color: "#223036",
+            });
+          }
+          continue;
+        }
+        const isEsc = r === 0 && c === 0;
+        const isEnter = r === 1 && c === cols - 1;
+        const isCmd = r === 3 && (c === 2 || c === 7);
+
+        items.push({
+          x: startX + c * gapX,
+          z: startZ + r * gapZ,
+          w: 0.145,
+          color: isEsc ? "#FF5A1F" : isEnter || isCmd ? "#00E5CC" : "#223036",
+          glow: isEsc || isEnter || isCmd,
+        });
+      }
+    }
+    return items;
+  }, []);
+
+  // Precompute clean illuminated code/telemetry lines on the studio screen
+  const screenLines = useMemo(
+    () => [
+      { x: -0.62, y: 0.42, w: 0.56, color: "#00E5CC", glow: 1.7 },
+      { x: -0.42, y: 0.28, w: 0.96, color: "#9CB4B9", glow: 0.25 },
+      { x: -0.54, y: 0.14, w: 0.72, color: "#FF5A1F", glow: 1.8 },
+      { x: -0.36, y: 0.0, w: 1.08, color: "#6F888E", glow: 0.2 },
+      { x: -0.58, y: -0.14, w: 0.64, color: "#00E5CC", glow: 1.5 },
+      { x: -0.48, y: -0.28, w: 0.84, color: "#52686E", glow: 0.15 },
+    ],
+    []
+  );
+
+  useFrame((state, rawDelta) => {
+    const delta = Math.min(rawDelta, 0.08);
     const t = state.clock.elapsedTime;
-    const damp = (curr: number, target: number, lambda = 4.6) =>
+    const damp = (curr: number, target: number, lambda = 7.5) =>
       THREE.MathUtils.damp(curr, target, lambda, delta);
 
-    // Gentle living breathing + responsive mouse tilt
+    const expanded = layeredView ? 1 : 0;
+
+    // Crisp, decisive 24fps float + responsive pointer tilt
     if (rootRef.current) {
+      rootRef.current.position.y = damp(
+        rootRef.current.position.y,
+        -0.42 + Math.sin(t * 1.45) * 0.07,
+        6
+      );
       rootRef.current.rotation.y = damp(
         rootRef.current.rotation.y,
-        -0.22 + state.pointer.x * 0.28 + Math.sin(t * 0.55) * 0.05,
-        3.5
+        -0.46 + state.pointer.x * 0.34 + Math.sin(t * 0.7) * 0.06,
+        6.5
       );
       rootRef.current.rotation.x = damp(
         rootRef.current.rotation.x,
-        0.08 - state.pointer.y * 0.16,
-        3.5
+        0.24 - state.pointer.y * 0.18,
+        6.5
       );
     }
 
-    const spread = layeredView ? 1 : 0;
-
-    if (backLayerRef.current) {
-      backLayerRef.current.position.z = damp(backLayerRef.current.position.z, -0.34 - spread * 0.65);
-      backLayerRef.current.position.x = damp(backLayerRef.current.position.x, -0.14 - spread * 0.26);
+    // Display lid opens slightly wider when inspecting the kinetic core
+    if (lidRef.current) {
+      lidRef.current.rotation.x = damp(lidRef.current.rotation.x, -0.34 - expanded * 0.22, 6.5);
     }
 
-    if (mainLayerRef.current) {
-      mainLayerRef.current.position.z = damp(mainLayerRef.current.position.z, 0);
+    // Hovering Holographic Gyro-Core rises & expands on toggle
+    if (coreGroupRef.current) {
+      coreGroupRef.current.position.y = damp(
+        coreGroupRef.current.position.y,
+        0.92 + expanded * 0.42 + Math.sin(t * 2.1) * 0.05,
+        7
+      );
+      coreGroupRef.current.position.z = damp(
+        coreGroupRef.current.position.z,
+        0.18 + expanded * 0.25,
+        7
+      );
+      const targetScale = 1 + expanded * 0.22;
+      coreGroupRef.current.scale.setScalar(damp(coreGroupRef.current.scale.x, targetScale, 7));
     }
 
-    if (frontCardLeftRef.current) {
-      frontCardLeftRef.current.position.z = damp(
-        frontCardLeftRef.current.position.z,
-        0.44 + spread * 0.52
-      );
-      frontCardLeftRef.current.position.y = damp(
-        frontCardLeftRef.current.position.y,
-        -0.68 + Math.sin(t * 1.4) * 0.04
-      );
+    // Decisive, real-speed 24fps orbital gyroscope motion
+    if (gemRef.current) {
+      gemRef.current.rotation.y = t * 1.15;
+      gemRef.current.rotation.x = Math.sin(t * 0.9) * 0.35;
     }
-
-    if (frontCardRightRef.current) {
-      frontCardRightRef.current.position.z = damp(
-        frontCardRightRef.current.position.z,
-        0.5 + spread * 0.62
-      );
-      frontCardRightRef.current.position.y = damp(
-        frontCardRightRef.current.position.y,
-        0.64 + Math.cos(t * 1.3) * 0.04
-      );
+    if (tealRingRef.current) {
+      tealRingRef.current.rotation.z = t * 0.95;
+      tealRingRef.current.rotation.x = 1.05 + expanded * 0.25 + Math.sin(t * 0.7) * 0.14;
     }
-
-    // Subtle living motion on the 3D dashboard bars
-    barRefs.current.forEach((bar, i) => {
-      if (!bar) return;
-      const base = barHeights[i];
-      const wave = 1 + Math.sin(t * 2.1 + i * 0.85) * 0.08;
-      bar.scale.y = wave;
-      bar.position.y = -0.45 + (base * wave) / 2;
-    });
+    if (orangeRingRef.current) {
+      orangeRingRef.current.rotation.y = -t * 1.25;
+      orangeRingRef.current.rotation.z = 0.65 - expanded * 0.3;
+    }
+    if (orbitNodesRef.current) {
+      orbitNodesRef.current.rotation.y = t * 1.4;
+      orbitNodesRef.current.rotation.z = 0.22;
+    }
+    if (pulseBarRef.current) {
+      const pulse = 0.75 + Math.sin(t * 3.2) * 0.25;
+      pulseBarRef.current.scale.x = pulse;
+    }
   });
 
   return (
     <>
-      <StudioLighting accent="balanced" shadowY={-1.75} />
+      <StudioLighting accent="balanced" shadowY={-1.55} />
       <OrbitControls
         enableZoom={false}
         enablePan={false}
-        rotateSpeed={0.5}
-        minPolarAngle={Math.PI / 3}
-        maxPolarAngle={Math.PI / 1.65}
-        minAzimuthAngle={-Math.PI / 3.2}
-        maxAzimuthAngle={Math.PI / 3.2}
+        rotateSpeed={0.65}
+        minPolarAngle={Math.PI / 3.4}
+        maxPolarAngle={Math.PI / 1.75}
+        minAzimuthAngle={-Math.PI / 2.6}
+        maxAzimuthAngle={Math.PI / 2.6}
       />
 
-      <Float speed={1.4} rotationIntensity={0.08} floatIntensity={0.18}>
-        <group
-          ref={rootRef}
-          onClick={(e) => {
-            e.stopPropagation();
-            onToggleLayers?.();
-          }}
-        >
-          {/* LAYER 1 (BACK): Dark Obsidian Cloud & API Architecture Plate */}
-          <group ref={backLayerRef} position={[-0.14, -0.05, -0.34]}>
-            <RoundedBox args={[2.9, 1.95, 0.12]} radius={0.1} smoothness={4}>
-              <meshPhysicalMaterial
-                color="#0F1A1E"
-                roughness={0.28}
-                metalness={0.55}
-                clearcoat={0.8}
-              />
-            </RoundedBox>
-            {/* Glowing Teal Backend Service Strips */}
-            {[-0.45, 0, 0.45].map((y, idx) => (
-              <mesh key={idx} position={[-0.55, y, 0.075]}>
-                <boxGeometry args={[1.25 - idx * 0.18, 0.07, 0.03]} />
-                <meshStandardMaterial
-                  color="#00E5CC"
-                  emissive="#00E5CC"
-                  emissiveIntensity={1.9}
-                  toneMapped={false}
-                />
-              </mesh>
-            ))}
-            {/* Glowing Orange Edge Node */}
-            <mesh position={[0.92, 0.45, 0.08]}>
-              <sphereGeometry args={[0.1, 18, 18]} />
+      <group
+        ref={rootRef}
+        position={[0, -0.42, 0]}
+        onClick={(e) => {
+          e.stopPropagation();
+          onToggleLayers?.();
+        }}
+      >
+        {/* 1. SCULPTED PORCELAIN & BRUSHED TITANIUM WORKSTATION BASE */}
+        <group position={[0, 0, 0.22]}>
+          {/* Top Sunlit Porcelain Unibody Deck */}
+          <RoundedBox args={[2.45, 0.11, 1.66]} radius={0.05} smoothness={4}>
+            <meshPhysicalMaterial
+              color="#FAF8F4"
+              roughness={0.2}
+              metalness={0.08}
+              clearcoat={0.95}
+              clearcoatRoughness={0.12}
+            />
+          </RoundedBox>
+
+          {/* Underbody Obsidian Titanium Chamfer */}
+          <RoundedBox args={[2.32, 0.055, 1.54]} radius={0.025} position={[0, -0.068, 0]}>
+            <meshStandardMaterial color="#182328" roughness={0.34} metalness={0.72} />
+          </RoundedBox>
+
+          {/* Front Subtle Neon Teal Power LED Slit */}
+          <mesh position={[0, 0.0, 0.835]}>
+            <boxGeometry args={[0.38, 0.016, 0.01]} />
+            <meshStandardMaterial
+              color="#00E5CC"
+              emissive="#00E5CC"
+              emissiveIntensity={2.2}
+              toneMapped={false}
+            />
+          </mesh>
+
+          {/* Recessed Dark Keyboard Well */}
+          <RoundedBox args={[2.02, 0.02, 0.78]} radius={0.02} position={[0, 0.052, -0.1]}>
+            <meshStandardMaterial color="#111A1E" roughness={0.45} metalness={0.35} />
+          </RoundedBox>
+
+          {/* Tactile Keycap Matrix (Neon Orange ESC + Neon Teal Command/Enter) */}
+          {keys.map((k, idx) => (
+            <mesh key={idx} position={[k.x, 0.068, k.z]}>
+              <boxGeometry args={[k.w, 0.022, 0.12]} />
               <meshStandardMaterial
-                color="#FF5A1F"
-                emissive="#FF5A1F"
-                emissiveIntensity={2.2}
-                toneMapped={false}
+                color={k.color}
+                emissive={k.glow ? k.color : "#000000"}
+                emissiveIntensity={k.glow ? 1.85 : 0}
+                roughness={k.glow ? 0.25 : 0.42}
+                toneMapped={!k.glow}
               />
             </mesh>
-          </group>
+          ))}
 
-          {/* LAYER 2 (MAIN): Sunlit Porcelain SaaS Application Window */}
-          <group ref={mainLayerRef} position={[0, 0, 0]}>
-            {/* Main Porcelain Chassis */}
-            <RoundedBox args={[3.1, 2.08, 0.12]} radius={0.12} smoothness={5}>
+          {/* Precision Trackpad with Hairline Border */}
+          <RoundedBox args={[0.74, 0.012, 0.42]} radius={0.025} position={[0, 0.056, 0.54]}>
+            <meshPhysicalMaterial
+              color="#ECEAE3"
+              roughness={0.16}
+              metalness={0.05}
+              clearcoat={0.85}
+            />
+          </RoundedBox>
+        </group>
+
+        {/* Precision Titanium Hinge Cylinder */}
+        <mesh position={[0, 0.07, -0.6]} rotation={[0, 0, Math.PI / 2]}>
+          <cylinderGeometry args={[0.042, 0.042, 1.88, 20]} />
+          <meshStandardMaterial color="#1E2B31" roughness={0.28} metalness={0.8} />
+        </mesh>
+
+        {/* 2. ULTRA-SLIM HINGED STUDIO DISPLAY LID */}
+        <group ref={lidRef} position={[0, 0.08, -0.6]} rotation={[-0.34, 0, 0]}>
+          <group position={[0, 0.84, 0]}>
+            {/* Porcelain Outer Lid Shell */}
+            <RoundedBox args={[2.44, 1.62, 0.07]} radius={0.05} smoothness={4}>
               <meshPhysicalMaterial
                 color="#FAF8F4"
-                roughness={0.22}
-                metalness={0.06}
+                roughness={0.18}
+                metalness={0.08}
                 clearcoat={0.95}
-                clearcoatRoughness={0.12}
               />
             </RoundedBox>
 
-            {/* Top Window Bar Divider */}
-            <mesh position={[0, 0.72, 0.068]}>
-              <boxGeometry args={[2.86, 0.015, 0.01]} />
-              <meshStandardMaterial color="#DFDBD2" roughness={0.5} />
-            </mesh>
+            {/* Deep Obsidian Glass Display Panel */}
+            <RoundedBox args={[2.28, 1.46, 0.02]} radius={0.035} position={[0, 0, 0.034]}>
+              <meshPhysicalMaterial
+                color="#0B1418"
+                roughness={0.12}
+                metalness={0.25}
+                clearcoat={1}
+                clearcoatRoughness={0.08}
+              />
+            </RoundedBox>
 
-            {/* Minimal Browser Window Dots */}
-            {[
-              { x: -1.32, color: "#FF5A1F" },
-              { x: -1.16, color: "#00E5CC" },
-              { x: -1.0, color: "#D4CFC5" },
-            ].map((dot, idx) => (
-              <mesh key={idx} position={[dot.x, 0.87, 0.072]}>
-                <sphereGeometry args={[0.042, 16, 16]} />
+            {/* Minimal Illuminated UI / Code Bars Inside Display */}
+            {screenLines.map((line, idx) => (
+              <mesh key={idx} position={[line.x, line.y, 0.05]}>
+                <boxGeometry args={[line.w, 0.05, 0.008]} />
                 <meshStandardMaterial
-                  color={dot.color}
-                  emissive={idx < 2 ? dot.color : "#000000"}
-                  emissiveIntensity={idx < 2 ? 1.5 : 0}
+                  color={line.color}
+                  emissive={line.color}
+                  emissiveIntensity={line.glow}
                   toneMapped={false}
                 />
               </mesh>
             ))}
 
-            {/* Left Sidebar Panel */}
-            <RoundedBox args={[0.72, 1.4, 0.04]} radius={0.05} position={[-1.02, -0.12, 0.07]}>
-              <meshPhysicalMaterial color="#F0EDE6" roughness={0.35} />
+            {/* Right-Side Live Signal Preview Card on Display */}
+            <RoundedBox args={[0.76, 0.86, 0.012]} radius={0.04} position={[0.56, 0.05, 0.048]}>
+              <meshStandardMaterial color="#132228" roughness={0.3} />
             </RoundedBox>
-            {[0.32, 0.1, -0.12, -0.34].map((y, idx) => (
-              <mesh key={idx} position={[-1.02, y, 0.098]}>
-                <boxGeometry args={[0.46, 0.065, 0.02]} />
-                <meshStandardMaterial
-                  color={idx === 0 ? "#00E5CC" : "#C9C5BC"}
-                  emissive={idx === 0 ? "#00E5CC" : "#000000"}
-                  emissiveIntensity={idx === 0 ? 1.8 : 0}
-                  toneMapped={false}
-                />
-              </mesh>
-            ))}
-
-            {/* Right Main Chart Stage */}
-            <RoundedBox args={[1.95, 1.4, 0.04]} radius={0.06} position={[0.42, -0.12, 0.07]}>
-              <meshPhysicalMaterial color="#FFFFFF" roughness={0.18} clearcoat={0.7} />
-            </RoundedBox>
-
-            {/* Sculpted Living 3D Analytics Bars */}
-            {barHeights.map((h, i) => {
-              const isPeak = i === barHeights.length - 1;
-              return (
-                <mesh
-                  key={i}
-                  ref={(el) => {
-                    barRefs.current[i] = el;
-                  }}
-                  position={[-0.18 + i * 0.3, -0.45 + h / 2, 0.135]}
-                >
-                  <boxGeometry args={[0.17, h, 0.09]} />
-                  <meshStandardMaterial
-                    color={isPeak ? "#FF5A1F" : i >= 2 ? "#00E5CC" : "#D6DFDF"}
-                    emissive={isPeak ? "#FF5A1F" : i >= 2 ? "#00E5CC" : "#000000"}
-                    emissiveIntensity={isPeak ? 2.0 : i >= 2 ? 1.45 : 0}
-                    roughness={0.25}
-                    toneMapped={false}
-                  />
-                </mesh>
-              );
-            })}
-
-            {/* Luminous Primary Action Pill (Top Right of Window) */}
-            <RoundedBox args={[0.56, 0.16, 0.04]} radius={0.07} position={[1.12, 0.87, 0.075]}>
+            <mesh ref={pulseBarRef} position={[0.56, 0.24, 0.058]}>
+              <boxGeometry args={[0.52, 0.08, 0.008]} />
               <meshStandardMaterial
                 color="#FF5A1F"
                 emissive="#FF5A1F"
-                emissiveIntensity={1.65}
-                toneMapped={false}
-              />
-            </RoundedBox>
-          </group>
-
-          {/* LAYER 3A (FRONT LEFT): Floating Refractive Frosted Glass Metric Card */}
-          <group ref={frontCardLeftRef} position={[-1.36, -0.68, 0.44]}>
-            <RoundedBox args={[1.18, 0.64, 0.08]} radius={0.08} smoothness={4}>
-              <meshPhysicalMaterial
-                color="#FFFFFF"
-                transmission={0.72}
-                transparent
-                opacity={0.95}
-                roughness={0.14}
-                ior={1.46}
-                thickness={0.5}
-                clearcoat={1}
-              />
-            </RoundedBox>
-            <mesh position={[-0.36, 0.08, 0.055]}>
-              <sphereGeometry args={[0.075, 16, 16]} />
-              <meshStandardMaterial
-                color="#00E5CC"
-                emissive="#00E5CC"
                 emissiveIntensity={2.1}
                 toneMapped={false}
               />
             </mesh>
-            <mesh position={[0.14, 0.12, 0.055]}>
-              <boxGeometry args={[0.58, 0.06, 0.02]} />
-              <meshStandardMaterial color="#0F171A" roughness={0.3} />
-            </mesh>
-            <mesh position={[0.06, -0.06, 0.055]}>
-              <boxGeometry args={[0.42, 0.045, 0.02]} />
-              <meshStandardMaterial color="#8B989D" roughness={0.4} />
-            </mesh>
-          </group>
-
-          {/* LAYER 3B (FRONT RIGHT): Floating Neon-Orange Accent Speed Pill */}
-          <group ref={frontCardRightRef} position={[1.38, 0.64, 0.5]}>
-            <RoundedBox args={[1.08, 0.56, 0.08]} radius={0.08} smoothness={4}>
-              <meshPhysicalMaterial
-                color="#FFFFFF"
-                transmission={0.72}
-                transparent
-                opacity={0.95}
-                roughness={0.14}
-                ior={1.46}
-                thickness={0.5}
-                clearcoat={1}
-              />
-            </RoundedBox>
-            <mesh position={[0, 0.07, 0.055]}>
-              <boxGeometry args={[0.68, 0.08, 0.025]} />
+            <mesh position={[0.56, -0.02, 0.058]}>
+              <boxGeometry args={[0.52, 0.05, 0.008]} />
               <meshStandardMaterial
-                color="#FF5A1F"
-                emissive="#FF5A1F"
+                color="#00E5CC"
+                emissive="#00E5CC"
                 emissiveIntensity={1.9}
                 toneMapped={false}
               />
             </mesh>
-            <mesh position={[-0.1, -0.1, 0.055]}>
-              <boxGeometry args={[0.46, 0.045, 0.02]} />
-              <meshStandardMaterial color="#59686E" roughness={0.4} />
+            <mesh position={[0.45, -0.18, 0.058]}>
+              <boxGeometry args={[0.3, 0.045, 0.008]} />
+              <meshStandardMaterial color="#6D868C" roughness={0.4} />
+            </mesh>
+
+            {/* Top Bezel Neon Hairline Accent */}
+            <mesh position={[0, 0.775, 0.04]}>
+              <boxGeometry args={[0.58, 0.014, 0.008]} />
+              <meshStandardMaterial
+                color="#00E5CC"
+                emissive="#00E5CC"
+                emissiveIntensity={2.0}
+                toneMapped={false}
+              />
             </mesh>
           </group>
         </group>
-      </Float>
+
+        {/* 3. HOVERING HOLOGRAPHIC KINETIC GYRO-CORE (Floating Above Keyboard) */}
+        <group ref={coreGroupRef} position={[0.16, 0.92, 0.18]}>
+          {/* Central Faceted Porcelain & Chrome Core */}
+          <mesh ref={gemRef}>
+            <octahedronGeometry args={[0.32, 0]} />
+            <meshPhysicalMaterial
+              color="#FFFFFF"
+              roughness={0.12}
+              metalness={0.28}
+              clearcoat={1}
+              clearcoatRoughness={0.06}
+            />
+          </mesh>
+
+          {/* Inner Luminous Orange Core Spark */}
+          <mesh>
+            <sphereGeometry args={[0.14, 20, 20]} />
+            <meshStandardMaterial
+              color="#FF5A1F"
+              emissive="#FF5A1F"
+              emissiveIntensity={2.4}
+              toneMapped={false}
+            />
+          </mesh>
+
+          {/* Outer Precision Electric Neon Teal Gyro Ring */}
+          <mesh ref={tealRingRef} rotation={[1.05, 0.25, 0]}>
+            <torusGeometry args={[0.66, 0.024, 16, 64]} />
+            <meshStandardMaterial
+              color="#00E5CC"
+              emissive="#00E5CC"
+              emissiveIntensity={2.2}
+              toneMapped={false}
+            />
+          </mesh>
+
+          {/* Inner Counter-Rotating Electric Neon Orange Gyro Ring */}
+          <mesh ref={orangeRingRef} rotation={[0.45, 0, 0.65]}>
+            <torusGeometry args={[0.5, 0.022, 16, 64]} />
+            <meshStandardMaterial
+              color="#FF5A1F"
+              emissive="#FF5A1F"
+              emissiveIntensity={2.2}
+              toneMapped={false}
+            />
+          </mesh>
+
+          {/* 3 Orbiting Modular Product Satellites (UI / API / Cloud) */}
+          <group ref={orbitNodesRef}>
+            {[
+              { pos: [0.84, 0.08, 0] as [number, number, number], color: "#00E5CC" },
+              { pos: [-0.42, 0.22, 0.72] as [number, number, number], color: "#FF5A1F" },
+              { pos: [-0.42, -0.18, -0.72] as [number, number, number], color: "#0F171A" },
+            ].map((node, i) => (
+              <mesh key={i} position={node.pos}>
+                <icosahedronGeometry args={[0.075, 0]} />
+                <meshStandardMaterial
+                  color={node.color}
+                  emissive={i < 2 ? node.color : "#000000"}
+                  emissiveIntensity={i < 2 ? 2.0 : 0}
+                  roughness={0.22}
+                  metalness={0.35}
+                  toneMapped={i === 2}
+                />
+              </mesh>
+            ))}
+          </group>
+        </group>
+      </group>
     </>
   );
 }

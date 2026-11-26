@@ -12,6 +12,10 @@ export function LenisBridge() {
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
 
+    // 24 FPS cadence creates crisp, authentic real-looking motion speed
+    // and keeps CPU/GPU overhead light across every device.
+    gsap.ticker.fps(24);
+
     const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     if (reducedMotion) {
       ScrollTrigger.refresh();
@@ -19,10 +23,11 @@ export function LenisBridge() {
     }
 
     const lenis = new Lenis({
-      duration: 1.0,
-      easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      duration: 0.52,
+      easing: (t) => 1 - Math.pow(1 - t, 3),
       smoothWheel: true,
-      touchMultiplier: 1.3,
+      wheelMultiplier: 1.25,
+      touchMultiplier: 1.45,
       autoRaf: false,
     });
 
@@ -56,7 +61,7 @@ export function LenisBridge() {
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "instant" as ScrollBehavior });
-    const t = setTimeout(() => ScrollTrigger.refresh(), 100);
+    const t = setTimeout(() => ScrollTrigger.refresh(), 80);
     return () => clearTimeout(t);
   }, [pathname]);
 
