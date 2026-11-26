@@ -3,11 +3,22 @@
 import { useEffect } from "react";
 import { usePathname } from "next/navigation";
 import { useCms } from "./CmsProvider";
+import { DEFAULT_FAVICON_URL } from "@/data/cms-defaults";
+
+function inferIconMimeType(url: string): string | null {
+  const clean = url.split("?")[0].split("#")[0].toLowerCase();
+  if (clean.endsWith(".svg")) return "image/svg+xml";
+  if (clean.endsWith(".png")) return "image/png";
+  if (clean.endsWith(".webp")) return "image/webp";
+  if (clean.endsWith(".ico")) return "image/x-icon";
+  if (clean.endsWith(".jpg") || clean.endsWith(".jpeg")) return "image/jpeg";
+  return null;
+}
 
 /**
  * Live Head & Metadata Synchronizer
  * Keeps browser tab `<title>`, `<meta name="description">`, and `<link rel="icon">`
- * 100% synchronized with live CMS `site.name`, `site.role`, `site.profileImage`,
+ * 100% synchronized with live CMS `site.name`, `site.role`, `site.faviconUrl`,
  * and active route — including on static cPanel builds where HTML metadata is pre-rendered.
  */
 export function SiteHeadSync() {
@@ -45,15 +56,26 @@ export function SiteHeadSync() {
     }
     metaDesc.setAttribute("content", descContent);
 
-    // Sync browser tab favicon to developer profile image when available
-    if (site.profileImage) {
-      let iconLink = document.querySelector('link[rel="icon"]');
-      if (!iconLink) {
-        iconLink = document.createElement("link");
-        iconLink.setAttribute("rel", "icon");
-        document.head.appendChild(iconLink);
-      }
-      iconLink.setAttribute("href", site.profileImage);
+    // Sync browser tab favicon strictly to the dedicated favicon setting (never the profile photo)
+    const activeFavicon = site.faviconUrl?.trim() || DEFAULT_FAVICON_URL;
+    const mimeType = inferIconMimeType(activeFavicon);
+    const existingIcons = document.querySelectorAll('link[rel="icon"], link[rel="shortcut icon"]');
+
+    if (existingIcons.length === 0) {
+      const link = document.createElement("link");
+      link.setAttribute("rel", "icon");
+      link.setAttribute("href", activeFavicon);
+      if (mimeType) link.setAttribute("type", mimeType);
+      document.head.appendChild(link);
+    } else {
+      existingIcons.forEach((el) => {
+        el.setAttribute("href", activeFavicon);
+        if (mimeType) {
+          el.setAttribute("type", mimeType);
+        } else {
+          el.removeAttribute("type");
+        }
+      });
     }
   }, [
     pathname,
@@ -61,7 +83,7 @@ export function SiteHeadSync() {
     site.role,
     site.heroDescription,
     site.workPageEyebrow,
-    site.profileImage,
+    site.faviconUrl,
     projects,
   ]);
 

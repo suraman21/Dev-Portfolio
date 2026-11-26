@@ -364,10 +364,18 @@ export async function saveUploadedMedia(
     "image/webp": "webp",
     "image/gif": "gif",
     "image/avif": "avif",
+    "image/svg+xml": "svg",
+    "image/x-icon": "ico",
+    "image/vnd.microsoft.icon": "ico",
   };
-  const ext = allowed[file.type];
+  let ext = allowed[file.type];
+  if (!ext && file.name.toLowerCase().endsWith(".ico")) {
+    ext = "ico";
+  } else if (!ext && file.name.toLowerCase().endsWith(".svg")) {
+    ext = "svg";
+  }
   if (!ext) {
-    throw new Error("Unsupported image format. Upload JPG, PNG, WebP, GIF, or AVIF.");
+    throw new Error("Unsupported image format. Upload PNG, SVG, ICO, JPG, WebP, GIF, or AVIF.");
   }
   if (file.size > 8 * 1024 * 1024) {
     throw new Error("Image exceeds 8MB limit.");
@@ -384,16 +392,33 @@ export async function saveUploadedMedia(
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "") || "product-image";
   const filename = `${baseName}-${crypto.randomBytes(4).toString("hex")}.${ext}`;
-  const buffer = Buffer.from(await file.arrayBuffer());
+  let buffer = Buffer.from(await file.arrayBuffer());
+
+  if (ext === "svg") {
+    const rawSvg = buffer.toString("utf8");
+    if (!/<svg[\s>]/i.test(rawSvg)) {
+      throw new Error("Invalid SVG file.");
+    }
+    const sanitizedSvg = rawSvg
+      .replace(/<script[\s\S]*?<\/script>/gi, "")
+      .replace(/<foreignObject[\s\S]*?<\/foreignObject>/gi, "")
+      .replace(/\son[a-z]+\s*=\s*(?:"[^"]*"|'[^']*'|[^\s>]+)/gi, "")
+      .replace(/javascript:/gi, "");
+    buffer = Buffer.from(sanitizedSvg, "utf8");
+  }
+
   fs.writeFileSync(path.join(UPLOAD_DIR, filename), buffer);
+
+  const resolvedMime =
+    file.type || (ext === "svg" ? "image/svg+xml" : ext === "ico" ? "image/x-icon" : "image/png");
 
   const asset: MediaAsset = {
     id: `media-${crypto.randomBytes(5).toString("hex")}`,
     filename,
     url: `/uploads/${filename}`,
     alt: alt.trim() || baseName,
-    mimeType: file.type,
-    sizeBytes: file.size,
+    mimeType: resolvedMime,
+    sizeBytes: buffer.length,
     createdAt: new Date().toISOString(),
   };
 

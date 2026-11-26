@@ -20,6 +20,10 @@ export const metadata: Metadata = {
     template: `%s · ${siteConfig.name}`,
   },
   description: `${siteConfig.name} — ${siteConfig.role}. Designing and building fast SaaS products, web apps, and modern luxury websites.`,
+  icons: {
+    icon: [{ url: "/images/favicons/code-brackets.svg", type: "image/svg+xml" }],
+    shortcut: "/images/favicons/code-brackets.svg",
+  },
 };
 
 export const viewport: Viewport = {

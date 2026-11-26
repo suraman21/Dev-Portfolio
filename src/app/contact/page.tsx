@@ -3,9 +3,10 @@
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
-import { Check, ChevronDown, Clock, Copy, Mail, MapPin, Send } from "lucide-react";
+import { ArrowUpRight, Check, ChevronDown, Clock, Copy, Mail, MapPin, Send } from "lucide-react";
 import { useCms } from "@/components/cms/CmsProvider";
 import { MagneticButton } from "@/components/ui/MagneticButton";
+import { resolveActiveSocials } from "@/lib/social-links";
 
 const BUDGET_OPTIONS = [
   "Not sure yet / Let's discuss",
@@ -20,6 +21,7 @@ function ContactFormInner() {
   const { data } = useCms();
   const { site, services } = data;
   const searchParams = useSearchParams();
+  const { githubUrl, linkedinUrl, whatsappUrl, telegramUrl } = resolveActiveSocials(site);
 
   const activeServices = useMemo(
     () => services.filter((s) => s.active),
@@ -152,6 +154,56 @@ function ContactFormInner() {
                 </span>
                 <span className="font-semibold text-[var(--ink-obsidian)]">{site.location}</span>
               </div>
+
+              {(whatsappUrl || telegramUrl || githubUrl || linkedinUrl) && (
+                <div className="border-t border-[var(--border-mineral)] pt-3 space-y-2.5">
+                  <div className="text-[11px] font-bold uppercase tracking-wider text-[var(--ink-muted)]">
+                    Direct Channels
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {whatsappUrl && (
+                      <a
+                        href={whatsappUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[#25D366]/35 bg-[#F2FDF6] px-3.5 py-1.5 text-xs font-semibold text-[#15803D] hover:border-[#25D366]"
+                      >
+                        WhatsApp <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                    {telegramUrl && (
+                      <a
+                        href={telegramUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[#229ED9]/35 bg-[#F0F9FF] px-3.5 py-1.5 text-xs font-semibold text-[#0369A1] hover:border-[#229ED9]"
+                      >
+                        Telegram <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                    {githubUrl && (
+                      <a
+                        href={githubUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-1.5 text-xs font-semibold text-[var(--ink-obsidian)] hover:border-[var(--teal-deep)]"
+                      >
+                        GitHub <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                    {linkedinUrl && (
+                      <a
+                        href={linkedinUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1.5 rounded-full border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-1.5 text-xs font-semibold text-[var(--ink-obsidian)] hover:border-[var(--teal-deep)]"
+                      >
+                        LinkedIn <ArrowUpRight className="h-3.5 w-3.5" />
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
 

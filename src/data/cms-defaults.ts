@@ -3,6 +3,35 @@ import { siteConfig } from "./site";
 import { projects } from "./projects";
 import { buildSteps, experiences, skillGroups, testimonials } from "./story";
 
+export const DEFAULT_FAVICON_URL = "/images/favicons/code-brackets.svg";
+
+export const FAVICON_PRESETS = [
+  {
+    id: "code-brackets",
+    label: "Code Brackets </>",
+    description: "Signature neon-teal chevrons & orange slash",
+    url: "/images/favicons/code-brackets.svg",
+  },
+  {
+    id: "terminal-prompt",
+    label: "Terminal >_",
+    description: "Engineering CLI window with neon cursor",
+    url: "/images/favicons/terminal-prompt.svg",
+  },
+  {
+    id: "circuit-node",
+    label: "Systems Graph",
+    description: "Distributed architecture & API core nodes",
+    url: "/images/favicons/circuit-node.svg",
+  },
+  {
+    id: "braces-core",
+    label: "Braces {·}",
+    description: "Minimal curly braces with orange core",
+    url: "/images/favicons/braces-core.svg",
+  },
+] as const;
+
 export const defaultCmsData: CmsData = {
   site: {
     name: siteConfig.name,
@@ -11,9 +40,17 @@ export const defaultCmsData: CmsData = {
     location: siteConfig.location,
     availability: siteConfig.availability,
     headerCtaLabel: "Let's Talk",
+    faviconUrl: DEFAULT_FAVICON_URL,
     email: siteConfig.email,
     github: siteConfig.github,
+    showGithub: true,
     linkedin: siteConfig.linkedin,
+    showLinkedin: true,
+    whatsapp: "+251900000000",
+    showWhatsapp: true,
+    telegram: "@suraaman",
+    showTelegram: true,
+    showFloatingContact: true,
 
     // Developer Portrait & Home Profile Spotlight
     profileImage: "/images/developer-profile.png",

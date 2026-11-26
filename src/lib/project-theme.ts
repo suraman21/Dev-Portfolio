@@ -1,13 +1,25 @@
-import type { ProjectTheme, ProjectThemePreset } from "@/types/cms";
+import type {
+  ProjectMediaFrameStyle,
+  ProjectMediaTone,
+  ProjectTheme,
+  ProjectThemePreset,
+} from "@/types/cms";
 
 /**
- * 1-click theme presets ready to populate an Admin Panel color picker dropdown.
- * Each preset can also be customized freely with any hex `accentColor` & `surfaceColor`.
+ * Default + 12 Curated 1-Click Project Theme Presets (13 presets + Custom Hex).
+ * Every preset guarantees WCAG AA contrast automatically.
  */
 export const PROJECT_THEME_PRESETS: Record<
   Exclude<ProjectThemePreset, "custom">,
   Omit<ProjectTheme, "preset">
 > = {
+  default: {
+    accentColor: "#00C7B3",
+    secondaryAccent: "#FF5A1F",
+    surfaceColor: "#F2F0EA",
+    cardTone: "light",
+    accentInk: "#005E54",
+  },
   teal: {
     accentColor: "#00C7B3",
     secondaryAccent: "#008E80",
@@ -57,7 +69,100 @@ export const PROJECT_THEME_PRESETS: Record<
     cardTone: "dark",
     accentInk: "#00E5CC",
   },
+  violet: {
+    accentColor: "#7C3AED",
+    secondaryAccent: "#A78BFA",
+    surfaceColor: "#EDE4FF",
+    cardTone: "tinted",
+    accentInk: "#5B21B6",
+  },
+  emerald: {
+    accentColor: "#059669",
+    secondaryAccent: "#34D399",
+    surfaceColor: "#D8F8EA",
+    cardTone: "tinted",
+    accentInk: "#065F46",
+  },
+  crimson: {
+    accentColor: "#DC2626",
+    secondaryAccent: "#F97316",
+    surfaceColor: "#FEE4E4",
+    cardTone: "tinted",
+    accentInk: "#991B1B",
+  },
+  slate: {
+    accentColor: "#334155",
+    secondaryAccent: "#0EA5E9",
+    surfaceColor: "#E4EBF2",
+    cardTone: "tinted",
+    accentInk: "#1E293B",
+  },
+  bronze: {
+    accentColor: "#B45309",
+    secondaryAccent: "#D97706",
+    surfaceColor: "#F6E7D6",
+    cardTone: "tinted",
+    accentInk: "#78350F",
+  },
 };
+
+export const PROJECT_THEME_PRESET_LIST: {
+  id: Exclude<ProjectThemePreset, "custom">;
+  label: string;
+  swatch: string;
+}[] = [
+  { id: "default", label: "Default", swatch: "#00C7B3" },
+  { id: "teal", label: "Teal", swatch: "#00C7B3" },
+  { id: "orange", label: "Orange", swatch: "#FF5A1F" },
+  { id: "gold", label: "Gold", swatch: "#D99116" },
+  { id: "cobalt", label: "Cobalt", swatch: "#2563EB" },
+  { id: "rose", label: "Rose", swatch: "#E11D48" },
+  { id: "sage", label: "Sage", swatch: "#15803D" },
+  { id: "obsidian", label: "Obsidian", swatch: "#0F171A" },
+  { id: "violet", label: "Violet", swatch: "#7C3AED" },
+  { id: "emerald", label: "Emerald", swatch: "#059669" },
+  { id: "crimson", label: "Crimson", swatch: "#DC2626" },
+  { id: "slate", label: "Slate", swatch: "#334155" },
+  { id: "bronze", label: "Bronze", swatch: "#B45309" },
+];
+
+export const PROJECT_FRAME_OPTIONS: {
+  value: ProjectMediaFrameStyle;
+  label: string;
+}[] = [
+  { value: "default", label: "Default (Auto Adaptive)" },
+  { value: "browser", label: "Browser Window" },
+  { value: "studio", label: "Studio Gallery Mat" },
+  { value: "floating", label: "Floating Elevated Card" },
+  { value: "frameless", label: "Frameless Edge-to-Edge" },
+  { value: "macbook", label: "Laptop Display Bezel" },
+  { value: "editorial", label: "Editorial Double Frame" },
+  { value: "glass", label: "Porcelain Frosted Glass" },
+  { value: "terminal", label: "Engineering Terminal" },
+  { value: "polaroid", label: "Gallery Caption Card" },
+  { value: "blueprint", label: "Precision CAD Blueprint" },
+  { value: "duotone-ring", label: "Dichroic Neon Ring" },
+  { value: "shadow-box", label: "Deep Exhibition Shadowbox" },
+];
+
+export const PROJECT_TONE_OPTIONS: {
+  value: ProjectMediaTone;
+  label: string;
+}[] = [
+  { value: "default", label: "Default (Balanced)" },
+  { value: "light", label: "Crisp Light UI" },
+  { value: "dark", label: "Deep Dark UI" },
+  { value: "warm", label: "Warm Editorial" },
+  { value: "vibrant", label: "Vivid Saturated" },
+  { value: "cool", label: "Cool Technical Blue" },
+  { value: "muted", label: "Soft Neutral Matte" },
+  { value: "monochrome", label: "Monochrome Studio" },
+  { value: "pastel", label: "Airy Porcelain Pastel" },
+  { value: "midnight", label: "Midnight Indigo Dark" },
+  { value: "sepia", label: "Archival Warm Sand" },
+  { value: "neon", label: "Cyber Dark Neon" },
+  { value: "high-contrast", label: "High-Contrast Stark" },
+];
 
 export interface ResolvedProjectTheme {
   sectionBg: string;
@@ -149,23 +254,28 @@ function ensureAccessibleInk(accentHex: string, bgHex: string, preferLight: bool
 }
 
 /**
- * Dynamically resolves any ProjectTheme (preset or custom Admin Panel hex values)
+ * Dynamically resolves any ProjectTheme (preset, "default", or custom Admin Panel hex values)
  * into a complete, WCAG-safe palette for sliders, work cards, and case studies.
  */
 export function resolveProjectTheme(theme: ProjectTheme): ResolvedProjectTheme {
-  const basePreset =
-    theme.preset !== "custom" ? PROJECT_THEME_PRESETS[theme.preset] : undefined;
+  const presetKey =
+    theme?.preset && theme.preset !== "custom" && theme.preset in PROJECT_THEME_PRESETS
+      ? (theme.preset as Exclude<ProjectThemePreset, "custom">)
+      : "default";
 
-  const accent = theme.accentColor || basePreset?.accentColor || "#00C7B3";
+  const basePreset =
+    theme?.preset !== "custom" ? PROJECT_THEME_PRESETS[presetKey] : undefined;
+
+  const accent = theme?.accentColor || basePreset?.accentColor || "#00C7B3";
   const secondary =
-    theme.secondaryAccent || basePreset?.secondaryAccent || mixHex(accent, "#0F171A", 0.22);
-  const surface = theme.surfaceColor || basePreset?.surfaceColor || "#F2F0EA";
-  const isDarkCard = theme.cardTone === "dark";
+    theme?.secondaryAccent || basePreset?.secondaryAccent || mixHex(accent, "#0F171A", 0.22);
+  const surface = theme?.surfaceColor || basePreset?.surfaceColor || "#F2F0EA";
+  const isDarkCard = (theme?.cardTone || basePreset?.cardTone) === "dark";
 
   if (isDarkCard) {
     const darkBase = "#0F171A";
     const safeAccentInk =
-      theme.accentInk || ensureAccessibleInk(accent, darkBase, true);
+      theme?.accentInk || ensureAccessibleInk(accent, darkBase, true);
     const ctaText = getContrastRatio("#0F171A", accent) >= 4.5 ? "#0F171A" : "#FFFFFF";
 
     return {
@@ -194,10 +304,12 @@ export function resolveProjectTheme(theme: ProjectTheme): ResolvedProjectTheme {
   }
 
   const cardSurfaceStart =
-    theme.cardTone === "tinted" ? mixHex(surface, "#FFFFFF", 0.42) : "#FFFFFF";
+    (theme?.cardTone || basePreset?.cardTone) === "tinted"
+      ? mixHex(surface, "#FFFFFF", 0.42)
+      : "#FFFFFF";
   const cardBg = `linear-gradient(145deg, ${cardSurfaceStart} 0%, #FFFFFF 100%)`;
   const safeAccentInk =
-    theme.accentInk ||
+    theme?.accentInk ||
     basePreset?.accentInk ||
     ensureAccessibleInk(accent, cardSurfaceStart, false);
 

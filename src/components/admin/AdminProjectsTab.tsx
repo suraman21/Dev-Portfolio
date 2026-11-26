@@ -24,7 +24,13 @@ import type {
   ProjectMediaTone,
   ProjectThemePreset,
 } from "@/types/cms";
-import { PROJECT_THEME_PRESETS, resolveProjectTheme } from "@/lib/project-theme";
+import {
+  PROJECT_FRAME_OPTIONS,
+  PROJECT_THEME_PRESET_LIST,
+  PROJECT_THEME_PRESETS,
+  PROJECT_TONE_OPTIONS,
+  resolveProjectTheme,
+} from "@/lib/project-theme";
 import { ProjectMediaFrame } from "@/components/ui/ProjectMediaFrame";
 
 interface AdminProjectsTabProps {
@@ -35,16 +41,6 @@ interface AdminProjectsTabProps {
 }
 
 const CATEGORIES: ProjectCategory[] = ["SaaS Products", "Web Platforms", "Design Systems"];
-const PRESETS: ProjectThemePreset[] = [
-  "teal",
-  "orange",
-  "gold",
-  "cobalt",
-  "rose",
-  "sage",
-  "obsidian",
-  "custom",
-];
 
 function createEmptyProject(index: number): Project {
   const num = String(index + 1).padStart(2, "0");
@@ -65,14 +61,14 @@ function createEmptyProject(index: number): Project {
       alt: "New product showcase screenshot",
       fit: "cover",
       focalPoint: "center",
-      frameStyle: "browser",
-      surfaceTone: "dark",
+      frameStyle: "default",
+      surfaceTone: "default",
       caption: "",
       gallery: [],
     },
     theme: {
-      preset: "teal",
-      ...PROJECT_THEME_PRESETS.teal,
+      preset: "default",
+      ...PROJECT_THEME_PRESETS.default,
     },
     tagline: "A crisp one-sentence summary explaining what this product solves.",
     keyResult: "+40% faster workflows · 99.9% reliability",
@@ -527,7 +523,7 @@ export function AdminProjectsTab({
                   Frame Style
                 </label>
                 <select
-                  value={active.media.frameStyle}
+                  value={active.media.frameStyle || "default"}
                   onChange={(e) =>
                     updateProject({
                       media: {
@@ -538,10 +534,11 @@ export function AdminProjectsTab({
                   }
                   className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
                 >
-                  <option value="browser">Browser Window</option>
-                  <option value="studio">Studio Mat</option>
-                  <option value="floating">Floating Card</option>
-                  <option value="frameless">Frameless Photo</option>
+                  {PROJECT_FRAME_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -549,7 +546,7 @@ export function AdminProjectsTab({
                   Image Tone
                 </label>
                 <select
-                  value={active.media.surfaceTone}
+                  value={active.media.surfaceTone || "default"}
                   onChange={(e) =>
                     updateProject({
                       media: {
@@ -560,10 +557,11 @@ export function AdminProjectsTab({
                   }
                   className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
                 >
-                  <option value="light">Light UI</option>
-                  <option value="dark">Dark UI</option>
-                  <option value="warm">Warm Photo</option>
-                  <option value="vibrant">Vibrant</option>
+                  {PROJECT_TONE_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
                 </select>
               </div>
               <div>
@@ -616,20 +614,35 @@ export function AdminProjectsTab({
             </h3>
 
             <div className="flex flex-wrap gap-2">
-              {PRESETS.map((preset) => (
+              {PROJECT_THEME_PRESET_LIST.map((preset) => (
                 <button
-                  key={preset}
+                  key={preset.id}
                   type="button"
-                  onClick={() => applyPreset(preset)}
-                  className={`rounded-full px-3.5 py-1.5 text-xs font-semibold capitalize transition-all cursor-pointer ${
-                    active.theme.preset === preset
+                  onClick={() => applyPreset(preset.id)}
+                  className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                    active.theme.preset === preset.id
                       ? "bg-[var(--ink-obsidian)] text-[#F7F5F0]"
-                      : "border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] text-[var(--ink-slate)]"
+                      : "border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] text-[var(--ink-slate)] hover:border-[var(--ink-obsidian)]/35"
                   }`}
                 >
-                  {preset}
+                  <span
+                    className="h-2.5 w-2.5 rounded-full border border-black/15"
+                    style={{ backgroundColor: preset.swatch }}
+                  />
+                  {preset.label}
                 </button>
               ))}
+              <button
+                type="button"
+                onClick={() => applyPreset("custom")}
+                className={`rounded-full px-3.5 py-1.5 text-xs font-semibold transition-all cursor-pointer ${
+                  active.theme.preset === "custom"
+                    ? "bg-[var(--ink-obsidian)] text-[#F7F5F0]"
+                    : "border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] text-[var(--ink-slate)]"
+                }`}
+              >
+                Custom Hex
+              </button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

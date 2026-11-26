@@ -7,6 +7,7 @@ import { SiteHeadSync } from "@/components/cms/SiteHeadSync";
 import { LenisBridge } from "./LenisBridge";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
+import { FloatingContactWidget } from "./FloatingContactWidget";
 
 function ShellFrame({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -28,6 +29,7 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
         {children}
       </main>
       <Footer />
+      <FloatingContactWidget />
       <div aria-hidden="true" className="paper-grain" />
     </>
   );

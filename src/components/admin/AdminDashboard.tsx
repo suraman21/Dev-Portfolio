@@ -1145,8 +1145,8 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
                     Media Library ({draft.mediaLibrary.length} Images)
                   </h2>
                   <p className="text-xs text-[var(--ink-slate)]">
-                    Upload real product screenshots or developer portrait photos (JPG, PNG, WebP,
-                    AVIF up to 8MB).
+                    Upload real product screenshots, developer portraits, or custom favicons (PNG,
+                    SVG, ICO, JPG, WebP, AVIF up to 8MB).
                   </p>
                 </div>
                 <label className="inline-flex items-center gap-2 rounded-full bg-[var(--neon-orange)] px-5 py-2.5 text-xs font-bold text-[#0F171A] cursor-pointer shadow-sm hover:scale-[1.02]">
@@ -1154,7 +1154,7 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
                   {uploadingMedia ? "Uploading..." : "Upload Image"}
                   <input
                     type="file"
-                    accept="image/*"
+                    accept="image/*,.svg,.ico"
                     className="hidden"
                     disabled={uploadingMedia}
                     onChange={async (e) => {

@@ -2,7 +2,8 @@
 
 import { useState } from "react";
 import { Plus, Trash2 } from "lucide-react";
-import type { BuildStep, CmsData } from "@/types/cms";
+import type { BuildStep, BuildStepAccent, CmsData } from "@/types/cms";
+import { resolveSlideTheme, SLIDE_THEME_OPTIONS } from "@/lib/slide-themes";
 
 interface AdminHomeTabProps {
   draft: CmsData;
@@ -222,7 +223,7 @@ export function AdminHomeTab({ draft, onUpdate }: AdminHomeTabProps) {
                   title: "Built with purposeful",
                   highlight: "precision.",
                   description: "Describe this stage of your product process.",
-                  accent: "teal",
+                  accent: "default",
                   points: ["Key deliverable 1", "Key deliverable 2"],
                   statValue: "100%",
                   statLabel: "Quality commitment",
@@ -236,184 +237,227 @@ export function AdminHomeTab({ draft, onUpdate }: AdminHomeTabProps) {
             </button>
           </div>
 
-          {buildSteps.map((step, idx) => (
-            <div
-              key={step.id || idx}
-              className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4"
-            >
-              <div className="flex items-center justify-between">
-                <span className="font-mono text-xs font-bold text-[var(--teal-deep)]">
-                  SLIDE {step.number}
-                </span>
-                {buildSteps.length > 2 && (
-                  <button
-                    type="button"
-                    onClick={() =>
-                      onUpdate((p) => ({
-                        ...p,
-                        buildSteps: p.buildSteps
-                          .filter((_, i) => i !== idx)
-                          .map((s, i) => ({
-                            ...s,
-                            number: String(i + 1).padStart(2, "0"),
-                          })),
-                      }))
-                    }
-                    className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 cursor-pointer"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" /> Remove Slide
-                  </button>
-                )}
-              </div>
+          {buildSteps.map((step, idx) => {
+            const previewTheme = resolveSlideTheme(step.accent, idx);
+            return (
+              <div
+                key={step.id || idx}
+                className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4"
+              >
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <div className="flex items-center gap-2.5">
+                    <span
+                      className="h-4 w-4 rounded-full border border-black/15"
+                      style={{ backgroundColor: previewTheme.swatch }}
+                    />
+                    <span className="font-mono text-xs font-bold text-[var(--teal-deep)]">
+                      SLIDE {step.number} · {previewTheme.label}
+                    </span>
+                  </div>
+                  {buildSteps.length > 2 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        onUpdate((p) => ({
+                          ...p,
+                          buildSteps: p.buildSteps
+                            .filter((_, i) => i !== idx)
+                            .map((s, i) => ({
+                              ...s,
+                              number: String(i + 1).padStart(2, "0"),
+                            })),
+                        }))
+                      }
+                      className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 cursor-pointer"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" /> Remove Slide
+                    </button>
+                  )}
+                </div>
 
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
-                <input
-                  value={step.label}
-                  onChange={(e) =>
-                    onUpdate((p) => ({
-                      ...p,
-                      buildSteps: p.buildSteps.map((s, i) =>
-                        i === idx ? { ...s, label: e.target.value } : s
-                      ),
-                    }))
-                  }
-                  placeholder="Badge Label"
-                  className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
-                />
-                <select
-                  value={step.accent}
-                  onChange={(e) =>
-                    onUpdate((p) => ({
-                      ...p,
-                      buildSteps: p.buildSteps.map((s, i) =>
-                        i === idx
-                          ? { ...s, accent: e.target.value as BuildStep["accent"] }
-                          : s
-                      ),
-                    }))
-                  }
-                  className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
-                >
-                  <option value="teal">Electric Mint-Teal Studio</option>
-                  <option value="orange">Solar Neon-Orange Studio</option>
-                  <option value="cobalt">Electric Cobalt-Ice + Dark Card</option>
-                </select>
-                <select
-                  value={step.visualType}
-                  onChange={(e) =>
-                    onUpdate((p) => ({
-                      ...p,
-                      buildSteps: p.buildSteps.map((s, i) =>
-                        i === idx
-                          ? { ...s, visualType: e.target.value as BuildStep["visualType"] }
-                          : s
-                      ),
-                    }))
-                  }
-                  className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
-                >
-                  <option value="strategy">Visual: Strategy Grid</option>
-                  <option value="engineering">Visual: Performance Bars</option>
-                  <option value="craft">Visual: 24 FPS Motion Badge</option>
-                </select>
-                <div className="grid grid-cols-2 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <input
-                    value={step.statValue}
+                    value={step.label}
                     onChange={(e) =>
                       onUpdate((p) => ({
                         ...p,
                         buildSteps: p.buildSteps.map((s, i) =>
-                          i === idx ? { ...s, statValue: e.target.value } : s
+                          i === idx ? { ...s, label: e.target.value } : s
                         ),
                       }))
                     }
-                    placeholder="Stat Value"
-                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-bold"
+                    placeholder="Badge Label"
+                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
+                  />
+                  <select
+                    value={step.accent || "default"}
+                    onChange={(e) =>
+                      onUpdate((p) => ({
+                        ...p,
+                        buildSteps: p.buildSteps.map((s, i) =>
+                          i === idx
+                            ? { ...s, accent: e.target.value as BuildStepAccent }
+                            : s
+                        ),
+                      }))
+                    }
+                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
+                  >
+                    {SLIDE_THEME_OPTIONS.map((opt) => (
+                      <option key={opt.value} value={opt.value}>
+                        Theme: {opt.label}
+                      </option>
+                    ))}
+                  </select>
+                  <select
+                    value={step.visualType}
+                    onChange={(e) =>
+                      onUpdate((p) => ({
+                        ...p,
+                        buildSteps: p.buildSteps.map((s, i) =>
+                          i === idx
+                            ? { ...s, visualType: e.target.value as BuildStep["visualType"] }
+                            : s
+                        ),
+                      }))
+                    }
+                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-semibold"
+                  >
+                    <option value="strategy">Visual: Strategy Grid</option>
+                    <option value="engineering">Visual: Performance Bars</option>
+                    <option value="craft">Visual: 24 FPS Motion Badge</option>
+                  </select>
+                  <div className="grid grid-cols-2 gap-2">
+                    <input
+                      value={step.statValue}
+                      onChange={(e) =>
+                        onUpdate((p) => ({
+                          ...p,
+                          buildSteps: p.buildSteps.map((s, i) =>
+                            i === idx ? { ...s, statValue: e.target.value } : s
+                          ),
+                        }))
+                      }
+                      placeholder="Stat Value"
+                      className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs font-bold"
+                    />
+                    <input
+                      value={step.statLabel}
+                      onChange={(e) =>
+                        onUpdate((p) => ({
+                          ...p,
+                          buildSteps: p.buildSteps.map((s, i) =>
+                            i === idx ? { ...s, statLabel: e.target.value } : s
+                          ),
+                        }))
+                      }
+                      placeholder="Stat Label"
+                      className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs"
+                    />
+                  </div>
+                </div>
+
+                {/* Quick Visual Swatch Strip for All 13 Slide Themes */}
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {SLIDE_THEME_OPTIONS.map((opt) => {
+                    const isSelected = (step.accent || "default") === opt.value;
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() =>
+                          onUpdate((p) => ({
+                            ...p,
+                            buildSteps: p.buildSteps.map((s, i) =>
+                              i === idx ? { ...s, accent: opt.value } : s
+                            ),
+                          }))
+                        }
+                        className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[10px] font-semibold transition-all cursor-pointer ${
+                          isSelected
+                            ? "bg-[var(--ink-obsidian)] text-[#F7F5F0]"
+                            : "border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] text-[var(--ink-slate)] hover:border-[var(--ink-obsidian)]/40"
+                        }`}
+                      >
+                        <span
+                          className="h-2.5 w-2.5 rounded-full border border-black/15"
+                          style={{ backgroundColor: opt.swatch }}
+                        />
+                        {opt.value === "default" ? "Default" : opt.label.split(" ")[0]}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <input
+                    value={step.title}
+                    onChange={(e) =>
+                      onUpdate((p) => ({
+                        ...p,
+                        buildSteps: p.buildSteps.map((s, i) =>
+                          i === idx ? { ...s, title: e.target.value } : s
+                        ),
+                      }))
+                    }
+                    placeholder="Slide Headline"
+                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm font-semibold"
                   />
                   <input
-                    value={step.statLabel}
+                    value={step.highlight}
                     onChange={(e) =>
                       onUpdate((p) => ({
                         ...p,
                         buildSteps: p.buildSteps.map((s, i) =>
-                          i === idx ? { ...s, statLabel: e.target.value } : s
+                          i === idx ? { ...s, highlight: e.target.value } : s
                         ),
                       }))
                     }
-                    placeholder="Stat Label"
-                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3 py-2 text-xs"
+                    placeholder="Italic Highlight Word"
+                    className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm italic"
+                  />
+                </div>
+
+                <textarea
+                  rows={2}
+                  value={step.description}
+                  onChange={(e) =>
+                    onUpdate((p) => ({
+                      ...p,
+                      buildSteps: p.buildSteps.map((s, i) =>
+                        i === idx ? { ...s, description: e.target.value } : s
+                      ),
+                    }))
+                  }
+                  className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
+                />
+
+                <div>
+                  <label className="block text-[11px] font-semibold text-[var(--ink-slate)] mb-1">
+                    Bullet Points (one per line)
+                  </label>
+                  <textarea
+                    rows={3}
+                    value={step.points.join("\n")}
+                    onChange={(e) =>
+                      onUpdate((p) => ({
+                        ...p,
+                        buildSteps: p.buildSteps.map((s, i) =>
+                          i === idx
+                            ? {
+                                ...s,
+                                points: e.target.value.split("\n").filter((l) => l.trim()),
+                              }
+                            : s
+                        ),
+                      }))
+                    }
+                    className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-xs"
                   />
                 </div>
               </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <input
-                  value={step.title}
-                  onChange={(e) =>
-                    onUpdate((p) => ({
-                      ...p,
-                      buildSteps: p.buildSteps.map((s, i) =>
-                        i === idx ? { ...s, title: e.target.value } : s
-                      ),
-                    }))
-                  }
-                  placeholder="Slide Headline"
-                  className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm font-semibold"
-                />
-                <input
-                  value={step.highlight}
-                  onChange={(e) =>
-                    onUpdate((p) => ({
-                      ...p,
-                      buildSteps: p.buildSteps.map((s, i) =>
-                        i === idx ? { ...s, highlight: e.target.value } : s
-                      ),
-                    }))
-                  }
-                  placeholder="Italic Highlight Word"
-                  className="rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm italic"
-                />
-              </div>
-
-              <textarea
-                rows={2}
-                value={step.description}
-                onChange={(e) =>
-                  onUpdate((p) => ({
-                    ...p,
-                    buildSteps: p.buildSteps.map((s, i) =>
-                      i === idx ? { ...s, description: e.target.value } : s
-                    ),
-                  }))
-                }
-                className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
-              />
-
-              <div>
-                <label className="block text-[11px] font-semibold text-[var(--ink-slate)] mb-1">
-                  Bullet Points (one per line)
-                </label>
-                <textarea
-                  rows={3}
-                  value={step.points.join("\n")}
-                  onChange={(e) =>
-                    onUpdate((p) => ({
-                      ...p,
-                      buildSteps: p.buildSteps.map((s, i) =>
-                        i === idx
-                          ? {
-                              ...s,
-                              points: e.target.value.split("\n").filter((l) => l.trim()),
-                            }
-                          : s
-                      ),
-                    }))
-                  }
-                  className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-xs"
-                />
-              </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
 

@@ -6,75 +6,21 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { CheckCircle2, Compass, Cpu, Sparkles } from "lucide-react";
 import type { BuildStep } from "@/types/cms";
 import { useCms } from "@/components/cms/CmsProvider";
-
-/** Strong, unmistakably distinct studio color theme per slide */
-const SLIDE_THEMES: Record<
-  BuildStep["accent"],
-  {
-    bgStyle: string;
-    orbClass: string;
-    badgeClass: string;
-    highlightClass: string;
-    checkClass: string;
-    cardClass: string;
-    iconBoxClass: string;
-    statTextClass: string;
-    dotActiveClass: string;
-    mobileCardStyle: string;
-    mobileBorderClass: string;
-  }
-> = {
-  teal: {
-    bgStyle:
-      "radial-gradient(circle at 82% 24%, rgba(0, 229, 204, 0.34), transparent 52%), linear-gradient(145deg, #D5F9F2 0%, #EEFCF9 58%, #DFFBF5 100%)",
-    orbClass: "bg-[#00E5CC]/35",
-    badgeClass: "bg-[#006B60] text-[#E8FFF9] border border-[#00A896]",
-    highlightClass: "text-[#006B60]",
-    checkClass: "text-[#007A6E]",
-    cardClass:
-      "bg-white/95 border-2 border-[#00D2BC] shadow-[0_28px_65px_-24px_rgba(0,122,110,0.28)]",
-    iconBoxClass: "bg-[#00E5CC]/25 text-[#005C53]",
-    statTextClass: "text-[#006B60]",
-    dotActiveClass: "w-8 bg-[#00B8A4]",
-    mobileCardStyle: "linear-gradient(145deg, #DDFBF5 0%, #F4FEFC 100%)",
-    mobileBorderClass: "border-2 border-[#00D2BC]",
-  },
-  orange: {
-    bgStyle:
-      "radial-gradient(circle at 82% 24%, rgba(255, 90, 31, 0.30), transparent 52%), linear-gradient(145deg, #FFE2D1 0%, #FFF4EC 58%, #FFE8DA 100%)",
-    orbClass: "bg-[#FF5A1F]/35",
-    badgeClass: "bg-[#C93904] text-[#FFF7F2] border border-[#FF5A1F]",
-    highlightClass: "text-[#C93904]",
-    checkClass: "text-[#D94108]",
-    cardClass:
-      "bg-white/95 border-2 border-[#FF6B35] shadow-[0_28px_65px_-24px_rgba(201,57,4,0.28)]",
-    iconBoxClass: "bg-[#FF5A1F]/20 text-[#B83200]",
-    statTextClass: "text-[#C93904]",
-    dotActiveClass: "w-8 bg-[#FF5A1F]",
-    mobileCardStyle: "linear-gradient(145deg, #FFE6D6 0%, #FFF7F2 100%)",
-    mobileBorderClass: "border-2 border-[#FF6B35]",
-  },
-  cobalt: {
-    bgStyle:
-      "radial-gradient(circle at 18% 22%, rgba(0, 229, 204, 0.24), transparent 46%), radial-gradient(circle at 84% 78%, rgba(255, 90, 31, 0.22), transparent 48%), linear-gradient(145deg, #DCE7FF 0%, #F0F5FF 55%, #E3ECFF 100%)",
-    orbClass: "bg-[#3B6EFF]/28",
-    badgeClass: "bg-[#153585] text-[#EEF4FF] border border-[#3B6EFF]",
-    highlightClass: "text-[#1A43A8]",
-    checkClass: "text-[#1A43A8]",
-    cardClass:
-      "bg-[#0F171A] text-[#F7F5F0] border-2 border-[#3B6EFF] shadow-[0_32px_70px_-24px_rgba(15,23,26,0.48)]",
-    iconBoxClass: "bg-[#00E5CC]/20 text-[#00E5CC]",
-    statTextClass: "text-[#00E5CC]",
-    dotActiveClass: "w-8 bg-[#1A43A8]",
-    mobileCardStyle: "linear-gradient(145deg, #DCE7FF 0%, #F2F6FF 100%)",
-    mobileBorderClass: "border-2 border-[#3B6EFF]",
-  },
-};
+import { resolveSlideTheme } from "@/lib/slide-themes";
 
 /** Distinct, high-contrast visual card per slide */
-function StepVisual({ step }: { step: BuildStep }) {
-  const theme = SLIDE_THEMES[step.accent];
-  const isDarkCard = step.accent === "cobalt";
+function StepVisual({
+  step,
+  slideIndex,
+  totalSlides,
+}: {
+  step: BuildStep;
+  slideIndex: number;
+  totalSlides: number;
+}) {
+  const theme = resolveSlideTheme(step.accent, slideIndex);
+  const isDarkCard = theme.isDarkCard;
+  const totalFormatted = String(totalSlides).padStart(2, "0");
 
   return (
     <div className={`relative overflow-hidden rounded-[30px] p-7 sm:p-9 ${theme.cardClass}`}>
@@ -97,7 +43,7 @@ function StepVisual({ step }: { step: BuildStep }) {
               isDarkCard ? "text-white/60" : "text-[var(--ink-muted)]"
             }`}
           >
-            {step.number} / 03
+            {step.number} / {totalFormatted}
           </span>
         </div>
 
@@ -131,10 +77,26 @@ function StepVisual({ step }: { step: BuildStep }) {
             ].map((item) => (
               <div
                 key={item.label}
-                className="rounded-2xl border border-[#00D2BC]/45 bg-[#EEFCF9] p-3.5"
+                className={`rounded-2xl border p-3.5 ${
+                  isDarkCard
+                    ? "border-white/15 bg-white/8"
+                    : "border-[#00D2BC]/45 bg-[#EEFCF9]"
+                }`}
               >
-                <div className="text-xs font-bold text-[#0F171A]">{item.label}</div>
-                <div className="mt-0.5 text-[11px] font-semibold text-[#006B60]">{item.spec}</div>
+                <div
+                  className={`text-xs font-bold ${
+                    isDarkCard ? "text-white" : "text-[#0F171A]"
+                  }`}
+                >
+                  {item.label}
+                </div>
+                <div
+                  className={`mt-0.5 text-[11px] font-semibold ${
+                    isDarkCard ? "text-[#00E5CC]" : "text-[#006B60]"
+                  }`}
+                >
+                  {item.spec}
+                </div>
               </div>
             ))}
           </div>
@@ -160,7 +122,13 @@ function StepVisual({ step }: { step: BuildStep }) {
         )}
 
         {step.visualType === "craft" && (
-          <div className="flex items-center justify-between rounded-2xl border border-white/15 bg-white/8 p-5">
+          <div
+            className={`flex items-center justify-between rounded-2xl border p-5 ${
+              isDarkCard
+                ? "border-white/15 bg-white/8"
+                : "border-[var(--border-mineral)] bg-[#0F171A]"
+            }`}
+          >
             <div>
               <div className="text-sm font-bold text-white">Real-Speed Motion System</div>
               <div className="text-xs text-white/65">
@@ -179,9 +147,10 @@ function StepVisual({ step }: { step: BuildStep }) {
 
 /**
  * STICKY MULTI-SLIDE FULL-SCREEN STORY ("How I Build")
- * - Desktop/Laptop (>=1024px): Pins full-screen while scrolling slides sharply
- *   across 3 strongly color-coded chapters (Electric Teal -> Solar Orange -> Cobalt Ice).
- * - Mobile (<1024px): Native CSS `position: sticky` cards with the same vivid color shifts.
+ * - Supports ANY number of slides (2, 3, 5, 12+) with zero overlap against downstream sections.
+ * - Uses `refreshPriority: 10` and triggers `ScrollTrigger.refresh()` on slide count updates
+ *   so `SelectedWorkReel` below always recalculates its exact Y start after pin spacers mount.
+ * - Supports Default (Auto) + 12 curated studio themes via `resolveSlideTheme`.
  */
 export function HowIBuildDeck() {
   const { data } = useCms();
@@ -192,12 +161,20 @@ export function HowIBuildDeck() {
   const lastIndexRef = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
 
+  // Always keep ref array length synchronized with active slide count (no stale DOM nodes!)
+  slideRefs.current.length = buildSteps.length;
+
+  const slidesSignature = buildSteps.map((s, i) => `${s.id || i}:${s.accent}`).join("|");
+
   useEffect(() => {
     gsap.registerPlugin(ScrollTrigger);
+    lastIndexRef.current = 0;
+    setActiveIndex(0);
+
     const mm = gsap.matchMedia();
 
     mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
-      const slides = slideRefs.current.filter(Boolean) as HTMLDivElement[];
+      const slides = slideRefs.current.slice(0, buildSteps.length).filter(Boolean) as HTMLDivElement[];
       if (!stageRef.current || slides.length < 2) return;
 
       slides.forEach((slide, i) => {
@@ -211,11 +188,14 @@ export function HowIBuildDeck() {
 
       const tl = gsap.timeline({
         scrollTrigger: {
+          id: "how-i-build-deck",
           trigger: stageRef.current,
           pin: true,
+          pinSpacing: true,
+          refreshPriority: 10,
           scrub: 0.14,
           start: "top top",
-          end: () => `+=${(slides.length - 1) * window.innerHeight * 0.52}`,
+          end: () => `+=${(slides.length - 1) * window.innerHeight * 0.55}`,
           invalidateOnRefresh: true,
           anticipatePin: 1,
           onUpdate: (self) => {
@@ -248,7 +228,7 @@ export function HowIBuildDeck() {
             prev,
             {
               scale: 0.94,
-              opacity: 0.2,
+              opacity: 0.15,
               duration: 0.85,
               ease: "power2.out",
             },
@@ -258,27 +238,47 @@ export function HowIBuildDeck() {
       });
     });
 
+    // Force GSAP to sort & recalculate downstream pinned triggers (e.g. SelectedWorkReel)
+    const rafId = window.requestAnimationFrame(() => {
+      ScrollTrigger.sort();
+      ScrollTrigger.refresh();
+    });
+
     return () => {
+      window.cancelAnimationFrame(rafId);
       triggerRef.current = null;
       mm.revert();
+      window.requestAnimationFrame(() => {
+        ScrollTrigger.refresh();
+      });
     };
-  }, [buildSteps.length]);
+  }, [buildSteps.length, slidesSignature]);
 
   const jumpToSlide = (idx: number) => {
-    setActiveIndex(idx);
-    if (triggerRef.current) {
+    const safeIdx = Math.max(0, Math.min(buildSteps.length - 1, idx));
+    setActiveIndex(safeIdx);
+    if (triggerRef.current && buildSteps.length > 1) {
       const st = triggerRef.current;
-      const y = st.start + (idx / (buildSteps.length - 1)) * (st.end - st.start);
+      const y = st.start + (safeIdx / (buildSteps.length - 1)) * (st.end - st.start);
       window.scrollTo({ top: y, behavior: "smooth" });
     }
   };
 
+  const totalFormatted = String(buildSteps.length).padStart(2, "0");
+  const currentFormatted = String(Math.min(activeIndex + 1, buildSteps.length)).padStart(2, "0");
+  const firstTheme = resolveSlideTheme(buildSteps[0]?.accent, 0);
+
   return (
-    <section id="how-i-build" aria-label="How I Build Software and Websites">
+    <section
+      id="how-i-build"
+      aria-label="How I Build Software and Websites"
+      className="relative z-10 isolate"
+    >
       {/* DESKTOP / LAPTOP: Crisp Sticky Pinned Full-Screen Color-Coded Slides */}
       <div
         ref={stageRef}
-        className="relative hidden lg:block h-screen w-full overflow-hidden border-y border-[var(--border-mineral)] bg-[#D5F9F2]"
+        className="relative hidden lg:block h-screen w-full overflow-hidden border-y border-[var(--border-mineral)]"
+        style={{ background: firstTheme.bgStyle }}
       >
         {/* Minimal Clean Progress Dots Reflecting Active Slide Color */}
         <div className="pointer-events-none absolute left-0 right-0 top-22 z-40 shell">
@@ -286,16 +286,16 @@ export function HowIBuildDeck() {
             <span className="rounded-full bg-white/90 backdrop-blur-md border border-[var(--border-mineral)] px-4 py-1.5 text-xs font-semibold text-[var(--ink-slate)] shadow-sm">
               How I Build ·{" "}
               <strong className="text-[var(--ink-obsidian)]">
-                0{activeIndex + 1} / 0{buildSteps.length}
+                {currentFormatted} / {totalFormatted}
               </strong>
             </span>
 
             <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-md border border-[var(--border-mineral)] px-3.5 py-2 shadow-sm">
               {buildSteps.map((s, idx) => {
-                const dotTheme = SLIDE_THEMES[s.accent];
+                const dotTheme = resolveSlideTheme(s.accent, idx);
                 return (
                   <button
-                    key={s.number}
+                    key={s.id || `${s.number}-${idx}`}
                     type="button"
                     onClick={() => jumpToSlide(idx)}
                     aria-label={`Jump to ${s.label}`}
@@ -314,10 +314,10 @@ export function HowIBuildDeck() {
         {/* Full-Screen Sliding Color Chapters */}
         <div className="relative h-full w-full">
           {buildSteps.map((step, idx) => {
-            const theme = SLIDE_THEMES[step.accent];
+            const theme = resolveSlideTheme(step.accent, idx);
             return (
               <div
-                key={step.number}
+                key={step.id || `${step.number}-${idx}`}
                 ref={(el) => {
                   slideRefs.current[idx] = el;
                 }}
@@ -342,9 +342,9 @@ export function HowIBuildDeck() {
                     <p className="text-body-lg max-w-[54ch] text-[#28363B]">{step.description}</p>
 
                     <ul className="space-y-3 pt-2">
-                      {step.points.map((point) => (
+                      {step.points.map((point, pIdx) => (
                         <li
-                          key={point}
+                          key={`${point}-${pIdx}`}
                           className="flex items-start gap-3 text-[15px] font-semibold text-[var(--ink-obsidian)]"
                         >
                           <CheckCircle2 className={`mt-0.5 h-5 w-5 shrink-0 ${theme.checkClass}`} />
@@ -355,7 +355,7 @@ export function HowIBuildDeck() {
                   </div>
 
                   <div className="col-span-5">
-                    <StepVisual step={step} />
+                    <StepVisual step={step} slideIndex={idx} totalSlides={buildSteps.length} />
                   </div>
                 </div>
               </div>
@@ -364,7 +364,7 @@ export function HowIBuildDeck() {
         </div>
       </div>
 
-      {/* MOBILE / TABLET: Native CSS Sticky Stack with Distinct Bold Slide Colors */}
+      {/* MOBILE / TABLET: Clean Native CSS Sticky Stack (Capped top offset so 4-12+ slides never overflow) */}
       <div className="lg:hidden border-y border-[var(--border-mineral)] bg-[var(--bg-alabaster)] py-16">
         <div className="shell mb-8">
           <span className="text-xs font-semibold uppercase tracking-wider text-[var(--teal-deep)]">
@@ -380,12 +380,12 @@ export function HowIBuildDeck() {
 
         <div className="shell space-y-6">
           {buildSteps.map((step, idx) => {
-            const theme = SLIDE_THEMES[step.accent];
+            const theme = resolveSlideTheme(step.accent, idx);
             return (
               <article
-                key={step.number}
+                key={step.id || `${step.number}-${idx}`}
                 style={{
-                  top: `${78 + idx * 14}px`,
+                  top: `${76 + Math.min(idx, 4) * 10}px`,
                   background: theme.mobileCardStyle,
                 }}
                 className={`sticky rounded-3xl p-6 shadow-[0_18px_40px_-18px_rgba(15,23,26,0.16)] ${theme.mobileBorderClass}`}
@@ -395,7 +395,7 @@ export function HowIBuildDeck() {
                     {step.label}
                   </span>
                   <span className="font-mono text-xs font-bold text-[var(--ink-obsidian)]">
-                    {step.number}/03
+                    {step.number}/{totalFormatted}
                   </span>
                 </div>
 
@@ -417,9 +417,9 @@ export function HowIBuildDeck() {
                 </div>
 
                 <ul className="mt-4 space-y-2 border-t border-black/10 pt-4">
-                  {step.points.map((point) => (
+                  {step.points.map((point, pIdx) => (
                     <li
-                      key={point}
+                      key={`${point}-${pIdx}`}
                       className="flex items-start gap-2.5 text-sm font-medium text-[var(--ink-obsidian)]"
                     >
                       <CheckCircle2 className={`mt-0.5 h-4 w-4 shrink-0 ${theme.checkClass}`} />

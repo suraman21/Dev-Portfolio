@@ -14,16 +14,38 @@ export type ProjectMediaFit = "cover" | "contain";
 export type ProjectMediaFocalPoint = "center" | "top" | "bottom" | "left" | "right";
 
 /**
- * Visual presentation frame selected per project in the Admin Panel:
- * - "browser"   : Minimal adaptive window bar for raw web app screenshots
- * - "studio"    : Tinted gallery mat around high-contrast light/dark UI shots
- * - "floating"  : Clean elevated card shadow (ideal when image already has browser chrome)
- * - "frameless" : Edge-to-edge editorial photography with subtle hairline ring
+ * Visual presentation frame selected per project in the Admin Panel (Default + 12 styles):
  */
-export type ProjectMediaFrameStyle = "browser" | "studio" | "floating" | "frameless";
+export type ProjectMediaFrameStyle =
+  | "default"
+  | "browser"
+  | "studio"
+  | "floating"
+  | "frameless"
+  | "macbook"
+  | "editorial"
+  | "glass"
+  | "terminal"
+  | "polaroid"
+  | "blueprint"
+  | "duotone-ring"
+  | "shadow-box";
 
-/** Dominant visual tone of the uploaded image itself so inner borders & chrome adapt cleanly */
-export type ProjectMediaTone = "light" | "dark" | "warm" | "vibrant";
+/** Dominant visual tone of the uploaded image itself so inner borders & chrome adapt cleanly (Default + 12 tones) */
+export type ProjectMediaTone =
+  | "default"
+  | "light"
+  | "dark"
+  | "warm"
+  | "vibrant"
+  | "cool"
+  | "muted"
+  | "monochrome"
+  | "pastel"
+  | "midnight"
+  | "sepia"
+  | "neon"
+  | "high-contrast";
 
 export interface ProjectGalleryItem {
   url: string;
@@ -43,6 +65,7 @@ export interface ProjectMedia {
 }
 
 export type ProjectThemePreset =
+  | "default"
   | "teal"
   | "orange"
   | "gold"
@@ -50,6 +73,11 @@ export type ProjectThemePreset =
   | "rose"
   | "sage"
   | "obsidian"
+  | "violet"
+  | "emerald"
+  | "crimson"
+  | "slate"
+  | "bronze"
   | "custom";
 
 export type ProjectCardTone = "light" | "tinted" | "dark";
@@ -126,9 +154,17 @@ export interface SiteSettings {
   location: string;
   availability: string;
   headerCtaLabel: string;
+  faviconUrl: string;
   email: string;
   github: string;
+  showGithub: boolean;
   linkedin: string;
+  showLinkedin: boolean;
+  whatsapp: string;
+  showWhatsapp: boolean;
+  telegram: string;
+  showTelegram: boolean;
+  showFloatingContact: boolean;
 
   // Developer Profile Portrait & Home Profile Spotlight
   profileImage: string;
@@ -239,6 +275,21 @@ export interface ServiceItem {
   active: boolean;
 }
 
+export type BuildStepAccent =
+  | "default"
+  | "teal"
+  | "orange"
+  | "cobalt"
+  | "emerald"
+  | "amber"
+  | "rose"
+  | "violet"
+  | "obsidian"
+  | "slate"
+  | "crimson"
+  | "gold"
+  | "arctic";
+
 export interface BuildStep {
   id?: string;
   number: string;
@@ -246,7 +297,7 @@ export interface BuildStep {
   title: string;
   highlight: string;
   description: string;
-  accent: "teal" | "orange" | "cobalt";
+  accent: BuildStepAccent;
   points: string[];
   statValue: string;
   statLabel: string;
