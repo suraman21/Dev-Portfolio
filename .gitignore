@@ -1,0 +1,5 @@
+# Keep server-specific database credentials and uploaded media untouched by git pull
+app/config.php
+public/uploads/*
+!public/uploads/.htaccess
+.DS_Store

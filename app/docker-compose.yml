@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: mysql:8.4
+    container_name: dev-portfolio-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: dev_portfolio_cms
+      MYSQL_USER: portfolio_user
+      MYSQL_PASSWORD: portfolio_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+
+  php-api:
+    image: php:8.3-apache
+    container_name: dev-portfolio-php-api
+    restart: unless-stopped
+    depends_on:
+      - mysql
+    ports:
+      - "8080:80"
+    environment:
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_NAME: dev_portfolio_cms
+      DB_USER: portfolio_user
+      DB_PASS: portfolio_password
+      ADMIN_EMAIL: admin@sura.dev
+      ADMIN_PASSWORD: admin1234
+      PUBLIC_BASE_URL: http://localhost:8080
+      CORS_ORIGIN: http://localhost:3000
+    volumes:
+      - ./:/var/www/html
+    command: >
+      bash -c "docker-php-ext-install pdo pdo_mysql &&
+               a2enmod rewrite headers &&
+               sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf &&
+               sed -i 's/AllowOverride None/AllowOverride All/g' /etc/apache2/apache2.conf &&
+               apache2-foreground"
+
+volumes:
+  mysql_data:

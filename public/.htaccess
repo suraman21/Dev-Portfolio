@@ -1,0 +1,45 @@
+# ============================================================================
+# Dev-Portfolio — Direct cPanel Main Domain & Subdomain Apache Rules
+# Point your domain OR subdomain DocumentRoot directly to this /public folder!
+#   - Website URL      : https://your-domain-or-subdomain/
+#   - Admin Panel URL  : https://your-domain-or-subdomain/app
+#   - PHP + MySQL API  : /api/* -> api.php -> ../app/index.php (uses ../app/config.php)
+# ============================================================================
+
+Options -Indexes
+RewriteEngine On
+
+# 1. Enforce HTTPS automatically (uncomment once AutoSSL is active in cPanel)
+# RewriteCond %{HTTPS} !=on
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# 2. Route all /api/* requests to ../app/index.php via public/api.php bridge
+RewriteRule ^api(/.*)?$ api.php [QSA,L]
+
+# 3. Serve existing files, directories (including /app Admin UI), and /uploads/* directly
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# 4. Dynamic Case Studies created later in Admin Panel -> serve static fallback shell
+RewriteRule ^work/([^/]+)/?$ /work/_fallback/index.html [L]
+
+# 5. Clean fallback to static 404 page
+ErrorDocument 404 /404.html
+
+# 6. Performance caching for immutable Next.js static assets
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType text/css "access plus 1 year"
+  ExpiresByType application/javascript "access plus 1 year"
+  ExpiresByType font/woff2 "access plus 1 year"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType image/jpeg "access plus 1 month"
+  ExpiresByType image/webp "access plus 1 month"
+  ExpiresByType image/svg+xml "access plus 1 month"
+</IfModule>
+
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+</IfModule>
