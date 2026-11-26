@@ -39,6 +39,8 @@ import type {
 } from "@/types/cms";
 import { useCms } from "@/components/cms/CmsProvider";
 import { generateMysqlExport } from "@/lib/sql-export";
+import { syncBrandNameEverywhere } from "@/lib/brand-sync";
+import { BrandAvatar } from "@/components/ui/BrandAvatar";
 import { AdminProjectsTab } from "./AdminProjectsTab";
 import { AdminProfileTab } from "./AdminProfileTab";
 import { AdminHomeTab } from "./AdminHomeTab";
@@ -125,10 +127,25 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
   const handleSaveAll = async () => {
     setSaving(true);
     try {
+      // If the developer's Full Name was changed, automatically synchronize it across
+      // all bios, experience companies, testimonials, alt text, and fallback monogram!
+      let payloadToSave = draft;
+      if (
+        draft.site.name.trim() &&
+        liveCms.site.name.trim() &&
+        draft.site.name.trim() !== liveCms.site.name.trim()
+      ) {
+        payloadToSave = syncBrandNameEverywhere(
+          draft,
+          [liveCms.site.name, "Sura Aman"],
+          draft.site.name
+        );
+      }
+
       const res = await fetch("/api/admin/cms", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(draft),
+        body: JSON.stringify(payloadToSave),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error || "Could not save changes.");
@@ -300,13 +317,18 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
       <header className="sticky top-0 z-40 border-b border-[var(--border-mineral)] bg-white/92 backdrop-blur-xl">
         <div className="mx-auto flex max-w-[1600px] items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[var(--ink-obsidian)] font-mono text-xs font-bold text-[var(--neon-teal)]">
-              {draft.site.monogram}
-            </span>
+            <BrandAvatar
+              src={draft.site.profileImage}
+              alt={draft.site.profileImageAlt || draft.site.name}
+              monogram={draft.site.monogram}
+              position={draft.site.profileImagePosition}
+              sizeClass="h-9 w-9"
+              roundedClass="rounded-xl"
+            />
             <div className="min-w-0">
               <div className="flex items-center gap-2">
                 <h1 className="truncate text-sm sm:text-base font-bold text-[var(--ink-obsidian)]">
-                  Portfolio CMS Admin
+                  {draft.site.name} · Admin
                 </h1>
                 <span
                   className={`hidden sm:inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-[10px] font-bold ${
@@ -735,6 +757,7 @@ export function AdminDashboard({ userEmail, backend, onLogout }: AdminDashboardP
           {tab === "profile" && (
             <AdminProfileTab
               draft={draft}
+              savedName={liveCms.site.name}
               uploading={uploadingMedia}
               onUpdate={updateDraft}
               onUploadImage={handleUploadImage}

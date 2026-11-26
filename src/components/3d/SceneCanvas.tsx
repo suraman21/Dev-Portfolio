@@ -1,6 +1,6 @@
 "use client";
 
-import React, { Component, Suspense, useEffect, useState } from "react";
+import React, { Component, Suspense, useEffect, useRef, useState } from "react";
 import { Canvas, useThree } from "@react-three/fiber";
 import { PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
@@ -26,15 +26,17 @@ class CanvasErrorBoundary extends Component<
 }
 
 /**
- * Precision 24 FPS Frame Pacer
- * Runs the 3D scene at a crisp, real-looking 24fps filmic cadence (41.67ms/frame)
- * using R3F `frameloop="demand"` — cuts GPU overhead by ~60% while delivering
- * authentic cinematic motion speed. Automatically pauses when tab is hidden.
+ * Precision 24 FPS Frame Pacer (Viewport-Aware)
+ * Runs the 3D scene at a crisp 24fps filmic cadence using R3F `frameloop="demand"`.
+ * Automatically pauses rendering when the tab is hidden OR when scrolled off-screen
+ * so scrolling down the rest of the page uses 0% WebGL GPU budget!
  */
-function FramePacer({ fps = 24 }: { fps?: number }) {
+function FramePacer({ fps = 24, active = true }: { fps?: number; active?: boolean }) {
   const invalidate = useThree((s) => s.invalidate);
 
   useEffect(() => {
+    if (!active) return;
+
     const frameInterval = 1000 / fps;
     let rafId = 0;
     let lastTime = 0;
@@ -54,7 +56,7 @@ function FramePacer({ fps = 24 }: { fps?: number }) {
     return () => {
       window.cancelAnimationFrame(rafId);
     };
-  }, [fps, invalidate]);
+  }, [fps, active, invalidate]);
 
   return null;
 }
@@ -101,9 +103,11 @@ export function SceneCanvas({
   className = "",
   fallbackLabel,
 }: SceneCanvasProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const [mounted, setMounted] = useState(false);
+  const [inView, setInView] = useState(true);
   const [webglReady, setWebglReady] = useState(true);
-  const [dpr, setDpr] = useState<[number, number]>([1, 1.75]);
+  const [dpr, setDpr] = useState<[number, number]>([1, 1.5]);
 
   useEffect(() => {
     setMounted(true);
@@ -116,14 +120,31 @@ export function SceneCanvas({
     }
   }, []);
 
+  useEffect(() => {
+    const el = containerRef.current;
+    if (!el || typeof IntersectionObserver === "undefined") return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        setInView(Boolean(entries[0]?.isIntersecting));
+      },
+      { rootMargin: "120px 0px" }
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [mounted]);
+
   const fallback = <OpticalFallback label={fallbackLabel} />;
 
   if (!mounted || !webglReady) {
-    return <div className={`relative h-full w-full ${className}`}>{fallback}</div>;
+    return (
+      <div ref={containerRef} className={`relative h-full w-full touch-pan-y ${className}`}>
+        {fallback}
+      </div>
+    );
   }
 
   return (
-    <div className={`relative h-full w-full ${className}`}>
+    <div ref={containerRef} className={`relative h-full w-full touch-pan-y ${className}`}>
       <CanvasErrorBoundary fallback={fallback}>
         <Canvas
           frameloop="demand"
@@ -136,12 +157,12 @@ export function SceneCanvas({
             toneMapping: THREE.ACESFilmicToneMapping,
             toneMappingExposure: 1.08,
           }}
-          style={{ background: "transparent" }}
+          style={{ background: "transparent", touchAction: "pan-y" }}
         >
-          <FramePacer fps={fps} />
+          <FramePacer fps={fps} active={inView} />
           <PerformanceMonitor
-            onDecline={() => setDpr([1, 1.25])}
-            onIncline={() => setDpr([1, 1.75])}
+            onDecline={() => setDpr([1, 1.15])}
+            onIncline={() => setDpr([1, 1.5])}
           />
           <Suspense fallback={null}>{children}</Suspense>
         </Canvas>

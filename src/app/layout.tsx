@@ -19,8 +19,7 @@ export const metadata: Metadata = {
     default: `${siteConfig.name} — ${siteConfig.role}`,
     template: `%s · ${siteConfig.name}`,
   },
-  description:
-    "Portfolio of Sura Aman — Senior Product Engineer designing and building fast, clear web apps, SaaS dashboards, and interactive digital products.",
+  description: `${siteConfig.name} — ${siteConfig.role}. Designing and building fast SaaS products, web apps, and modern luxury websites.`,
 };
 
 export const viewport: Viewport = {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useFrame } from "@react-three/fiber";
 import { OrbitControls, RoundedBox } from "@react-three/drei";
 import * as THREE from "three";
@@ -31,6 +31,13 @@ export function HeroWorkspace3D({
   const orangeRingRef = useRef<THREE.Mesh>(null);
   const orbitNodesRef = useRef<THREE.Group>(null);
   const pulseBarRef = useRef<THREE.Mesh>(null);
+  const [allowOrbitDrag, setAllowOrbitDrag] = useState(false);
+
+  // Only enable OrbitControls drag on fine-pointer mouse/trackpad devices so mobile
+  // vertical thumb swipes over the 3D Hero card NEVER get trapped by touch-action:none!
+  useEffect(() => {
+    setAllowOrbitDrag(window.matchMedia("(pointer: fine)").matches);
+  }, []);
 
   // Precompute tactile low-profile keyboard key coordinates once
   const keys = useMemo(() => {
@@ -159,15 +166,17 @@ export function HeroWorkspace3D({
   return (
     <>
       <StudioLighting accent="balanced" shadowY={-1.55} />
-      <OrbitControls
-        enableZoom={false}
-        enablePan={false}
-        rotateSpeed={0.65}
-        minPolarAngle={Math.PI / 3.4}
-        maxPolarAngle={Math.PI / 1.75}
-        minAzimuthAngle={-Math.PI / 2.6}
-        maxAzimuthAngle={Math.PI / 2.6}
-      />
+      {allowOrbitDrag && (
+        <OrbitControls
+          enableZoom={false}
+          enablePan={false}
+          rotateSpeed={0.65}
+          minPolarAngle={Math.PI / 3.4}
+          maxPolarAngle={Math.PI / 1.75}
+          minAzimuthAngle={-Math.PI / 2.6}
+          maxAzimuthAngle={Math.PI / 2.6}
+        />
+      )}
 
       <group
         ref={rootRef}

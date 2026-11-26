@@ -1,11 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Image as ImageIcon, Plus, Trash2, Upload } from "lucide-react";
+import { Image as ImageIcon, Plus, RefreshCw, Trash2, Upload } from "lucide-react";
 import type { CmsData, MediaAsset, ProfileImagePosition } from "@/types/cms";
+import {
+  countLegacyNameReferences,
+  deriveMonogram,
+  syncBrandNameEverywhere,
+} from "@/lib/brand-sync";
 
 interface AdminProfileTabProps {
   draft: CmsData;
+  savedName: string;
   uploading: boolean;
   onUpdate: (updater: (prev: CmsData) => CmsData) => void;
   onUploadImage: (file: File, alt: string) => Promise<MediaAsset | null>;
@@ -19,6 +25,7 @@ const POS_CLASS: Record<ProfileImagePosition, string> = {
 
 export function AdminProfileTab({
   draft,
+  savedName,
   uploading,
   onUpdate,
   onUploadImage,
@@ -28,6 +35,36 @@ export function AdminProfileTab({
 
   const setSite = (patch: Partial<CmsData["site"]>) =>
     onUpdate((prev) => ({ ...prev, site: { ...prev.site, ...patch } }));
+
+  const legacyNames = [savedName, "Sura Aman"];
+  const legacyRefCount = countLegacyNameReferences(draft, legacyNames, site.name);
+
+  const handleNameChange = (nextName: string) => {
+    onUpdate((prev) => {
+      const prevMonogram = deriveMonogram(prev.site.name);
+      const shouldUpdateMonogram =
+        !prev.site.monogram || prev.site.monogram.toUpperCase() === prevMonogram;
+      const shouldUpdateAlt =
+        !prev.site.profileImageAlt ||
+        prev.site.profileImageAlt.startsWith(prev.site.name);
+
+      return {
+        ...prev,
+        site: {
+          ...prev.site,
+          name: nextName,
+          monogram: shouldUpdateMonogram ? deriveMonogram(nextName) : prev.site.monogram,
+          profileImageAlt: shouldUpdateAlt
+            ? `${nextName} — ${prev.site.role}`
+            : prev.site.profileImageAlt,
+        },
+      };
+    });
+  };
+
+  const handleSyncNameEverywhere = () => {
+    onUpdate((prev) => syncBrandNameEverywhere(prev, legacyNames, prev.site.name));
+  };
 
   const posClass = POS_CLASS[site.profileImagePosition || "top"];
 
@@ -170,21 +207,39 @@ export function AdminProfileTab({
 
       {/* 2. Core Identity & Social Links */}
       <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">
-        <h3 className="text-base font-bold">Core Brand Identity &amp; Links</h3>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h3 className="text-base font-bold">Core Brand Identity &amp; Global Sync</h3>
+            <p className="text-xs text-[var(--ink-slate)]">
+              Changes here automatically sync across Header, Footer, Browser Tab Title, Hero, About,
+              and Contact pages.
+            </p>
+          </div>
+          {legacyRefCount > 0 && (
+            <button
+              type="button"
+              onClick={handleSyncNameEverywhere}
+              className="inline-flex items-center gap-1.5 rounded-full bg-[var(--neon-teal)] px-4 py-2 text-xs font-bold text-[#0F171A] shadow-sm transition-transform hover:scale-[1.02] cursor-pointer"
+            >
+              <RefreshCw className="h-3.5 w-3.5" />
+              Sync &ldquo;{site.name}&rdquo; into {legacyRefCount} Text Mentions
+            </button>
+          )}
+        </div>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-              Full Name
+              Full Name (Synced Site-Wide)
             </label>
             <input
               value={site.name}
-              onChange={(e) => setSite({ name: e.target.value })}
+              onChange={(e) => handleNameChange(e.target.value)}
               className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm font-semibold"
             />
           </div>
           <div>
             <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-              Monogram Badge
+              Fallback Initials (Shown if no photo)
             </label>
             <input
               value={site.monogram}
@@ -194,7 +249,7 @@ export function AdminProfileTab({
           </div>
           <div>
             <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-              Direct Email
+              Direct Email (Synced Site-Wide)
             </label>
             <input
               value={site.email}
@@ -204,7 +259,7 @@ export function AdminProfileTab({
           </div>
           <div className="sm:col-span-2">
             <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-              Role / Title Badge
+              Role / Title Badge (Synced Site-Wide)
             </label>
             <input
               value={site.role}
@@ -214,7 +269,7 @@ export function AdminProfileTab({
           </div>
           <div>
             <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-              Location
+              Location (Synced Site-Wide)
             </label>
             <input
               value={site.location}
@@ -222,14 +277,24 @@ export function AdminProfileTab({
               className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
             />
           </div>
-          <div className="sm:col-span-3">
+          <div className="sm:col-span-2">
             <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
-              Availability Pill Text
+              Availability Status (Header, About, Contact &amp; Footer)
             </label>
             <input
               value={site.availability}
               onChange={(e) => setSite({ availability: e.target.value })}
               className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
+            />
+          </div>
+          <div>
+            <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
+              Header CTA Button Label
+            </label>
+            <input
+              value={site.headerCtaLabel || "Let's Talk"}
+              onChange={(e) => setSite({ headerCtaLabel: e.target.value })}
+              className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm font-semibold"
             />
           </div>
           <div>

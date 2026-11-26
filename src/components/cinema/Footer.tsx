@@ -6,6 +6,7 @@ import { ArrowUpRight, Check, Copy, Lock, MapPin } from "lucide-react";
 import { siteConfig } from "@/data/site";
 import { useCms } from "@/components/cms/CmsProvider";
 import { MagneticButton } from "@/components/ui/MagneticButton";
+import { BrandAvatar } from "@/components/ui/BrandAvatar";
 
 /**
  * Architectural Luxury Footer — Seamlessly Matches the Warm Alabaster,
@@ -82,9 +83,14 @@ export function Footer() {
               {/* Brand Column */}
               <div className="sm:col-span-2 lg:col-span-5 space-y-4">
                 <Link href="/" className="inline-flex items-center gap-3 group">
-                  <span className="flex h-11 w-11 items-center justify-center rounded-full bg-[var(--ink-obsidian)] font-mono text-xs font-bold text-[var(--neon-teal)] shadow-sm transition-transform group-hover:scale-105">
-                    {site.monogram}
-                  </span>
+                  <BrandAvatar
+                    src={site.profileImage}
+                    alt={site.profileImageAlt || site.name}
+                    monogram={site.monogram}
+                    position={site.profileImagePosition}
+                    sizeClass="h-11 w-11"
+                    className="transition-transform group-hover:scale-105"
+                  />
                   <div>
                     <div className="text-base font-bold text-[var(--ink-obsidian)]">{site.name}</div>
                     <div className="text-xs font-medium text-[var(--teal-deep)]">{site.role}</div>

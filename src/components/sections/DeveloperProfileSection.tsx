@@ -71,9 +71,9 @@ export function DeveloperProfileSection() {
                           {site.role}
                         </div>
                       </div>
-                      <span className="shrink-0 inline-flex items-center gap-1.5 rounded-full bg-[var(--teal-mist)] px-2.5 py-1 text-[10px] font-bold text-[var(--teal-deep)]">
-                        <span className="pulse-teal h-1.5 w-1.5 rounded-full bg-[var(--neon-teal)]" />
-                        Available
+                      <span className="shrink-0 max-w-[46%] inline-flex items-center gap-1.5 rounded-full bg-[var(--teal-mist)] px-2.5 py-1 text-[10px] font-bold text-[var(--teal-deep)]">
+                        <span className="pulse-teal h-1.5 w-1.5 shrink-0 rounded-full bg-[var(--neon-teal)]" />
+                        <span className="truncate">{site.availability}</span>
                       </span>
                     </div>
                   </div>

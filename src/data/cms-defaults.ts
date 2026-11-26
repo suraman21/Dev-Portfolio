@@ -10,6 +10,7 @@ export const defaultCmsData: CmsData = {
     role: siteConfig.role,
     location: siteConfig.location,
     availability: siteConfig.availability,
+    headerCtaLabel: "Let's Talk",
     email: siteConfig.email,
     github: siteConfig.github,
     linkedin: siteConfig.linkedin,

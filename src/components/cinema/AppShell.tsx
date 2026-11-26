@@ -3,6 +3,7 @@
 import React from "react";
 import { usePathname } from "next/navigation";
 import { CmsProvider } from "@/components/cms/CmsProvider";
+import { SiteHeadSync } from "@/components/cms/SiteHeadSync";
 import { LenisBridge } from "./LenisBridge";
 import { Header } from "./Header";
 import { Footer } from "./Footer";
@@ -35,6 +36,7 @@ function ShellFrame({ children }: { children: React.ReactNode }) {
 export function AppShell({ children }: { children: React.ReactNode }) {
   return (
     <CmsProvider>
+      <SiteHeadSync />
       <ShellFrame>{children}</ShellFrame>
     </CmsProvider>
   );

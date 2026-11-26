@@ -189,6 +189,7 @@ export function HowIBuildDeck() {
   const stageRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
   const triggerRef = useRef<ScrollTrigger | null>(null);
+  const lastIndexRef = useRef(0);
   const [activeIndex, setActiveIndex] = useState(0);
 
   useEffect(() => {
@@ -212,9 +213,9 @@ export function HowIBuildDeck() {
         scrollTrigger: {
           trigger: stageRef.current,
           pin: true,
-          scrub: 0.32,
+          scrub: 0.14,
           start: "top top",
-          end: () => `+=${(slides.length - 1) * window.innerHeight * 0.65}`,
+          end: () => `+=${(slides.length - 1) * window.innerHeight * 0.52}`,
           invalidateOnRefresh: true,
           anticipatePin: 1,
           onUpdate: (self) => {
@@ -222,7 +223,10 @@ export function HowIBuildDeck() {
               slides.length - 1,
               Math.round(self.progress * (slides.length - 1))
             );
-            setActiveIndex(idx);
+            if (idx !== lastIndexRef.current) {
+              lastIndexRef.current = idx;
+              setActiveIndex(idx);
+            }
           },
         },
       });
