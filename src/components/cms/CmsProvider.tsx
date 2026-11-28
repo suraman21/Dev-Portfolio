@@ -15,11 +15,8 @@ declare global {
   interface Window {
     __PORTFOLIO_CMS__?: Partial<CmsData> | null;
     __PORTFOLIO_BACKEND__?: "php-mysql" | "local-preview";
-    __CMS_BOOT_FALLBACK__?: ReturnType<typeof setTimeout>;
   }
 }
-
-const CMS_CACHE_KEY = "portfolio_cms_cache_v1";
 
 const useIsomorphicLayoutEffect =
   typeof window !== "undefined" ? useLayoutEffect : useEffect;
@@ -72,27 +69,17 @@ export function mergeCmsPayload(d?: Partial<CmsData> | null): CmsData {
   };
 }
 
-function revealBootShield() {
-  if (typeof window === "undefined") return;
-  if (window.__CMS_BOOT_FALLBACK__) {
-    clearTimeout(window.__CMS_BOOT_FALLBACK__);
-    window.__CMS_BOOT_FALLBACK__ = undefined;
-  }
-  document.documentElement.setAttribute("data-cms-boot", "ready");
-}
-
-function writeLocalCache(cms: CmsData) {
-  try {
-    window.localStorage.setItem(CMS_CACHE_KEY, JSON.stringify(cms));
-  } catch {
-    // Ignore storage quota or private browsing errors
-  }
-}
-
 interface CmsContextValue {
   data: CmsData;
   backend: "php-mysql" | "local-preview";
+  /** True during background fetches */
   loading: boolean;
+  /**
+   * False during static build & before live CMS data is resolved (either synchronously
+   * from server-injected `window.__PORTFOLIO_CMS__` on cPanel OR from `/api/cms`).
+   * `AppShell` gates public UI rendering on `ready` so default demo data NEVER renders!
+   */
+  ready: boolean;
   refresh: () => Promise<void>;
   setCmsLocal: (next: CmsData) => void;
 }
@@ -100,7 +87,8 @@ interface CmsContextValue {
 const CmsContext = createContext<CmsContextValue>({
   data: defaultCmsData,
   backend: "local-preview",
-  loading: false,
+  loading: true,
+  ready: false,
   refresh: async () => {},
   setCmsLocal: () => {},
 });
@@ -109,14 +97,14 @@ export function CmsProvider({ children }: { children: React.ReactNode }) {
   const [data, setData] = useState<CmsData>(defaultCmsData);
   const [backend, setBackend] = useState<"php-mysql" | "local-preview">("local-preview");
   const [loading, setLoading] = useState(true);
-  const [bootResolved, setBootResolved] = useState(false);
+  const [ready, setReady] = useState(false);
 
   const setCmsLocal = useCallback((next: CmsData) => {
     const merged = mergeCmsPayload(next);
     setData(merged);
+    setReady(true);
     if (typeof window !== "undefined") {
       window.__PORTFOLIO_CMS__ = merged;
-      writeLocalCache(merged);
     }
   }, []);
 
@@ -130,21 +118,20 @@ export function CmsProvider({ children }: { children: React.ReactNode }) {
         setData(merged);
         if (typeof window !== "undefined") {
           window.__PORTFOLIO_CMS__ = merged;
-          writeLocalCache(merged);
         }
       }
       if (json?.backend === "php-mysql" || json?.backend === "local-preview") {
         setBackend(json.backend);
       }
     } catch {
-      // Retain server-bootstrapped or default CMS content if offline
+      // Offline / unconfigured fallback — gracefully resolves ready in finally
     } finally {
       setLoading(false);
-      setBootResolved(true);
+      setReady(true);
     }
   }, []);
 
-  // Synchronously ingest server-injected MySQL CMS payload BEFORE the browser paints!
+  // Synchronously ingest live MySQL CMS injected by cPanel `/public/index.php` BEFORE first paint!
   useIsomorphicLayoutEffect(() => {
     const serverCms = window.__PORTFOLIO_CMS__;
     if (serverCms && typeof serverCms === "object") {
@@ -156,24 +143,17 @@ export function CmsProvider({ children }: { children: React.ReactNode }) {
       ) {
         setBackend(window.__PORTFOLIO_BACKEND__);
       }
-      writeLocalCache(merged);
       setLoading(false);
-      setBootResolved(true);
+      setReady(true);
       return;
     }
 
-    // Fallback (Next.js Node preview or unconfigured DB): fetch live `/api/cms` before reveal
+    // Fallback (Next.js Node preview or first-time setup): fetch live `/api/cms` before mounting public UI
     refresh();
   }, [refresh]);
 
-  // Reveal the page ONLY AFTER React has committed the live CMS data to the DOM
-  useIsomorphicLayoutEffect(() => {
-    if (!bootResolved) return;
-    revealBootShield();
-  }, [bootResolved, data]);
-
   return (
-    <CmsContext.Provider value={{ data, backend, loading, refresh, setCmsLocal }}>
+    <CmsContext.Provider value={{ data, backend, loading, ready, refresh, setCmsLocal }}>
       {children}
     </CmsContext.Provider>
   );
