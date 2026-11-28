@@ -1,12 +1,15 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import gsap from "gsap";
-import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CheckCircle2, Compass, Cpu, Sparkles } from "lucide-react";
 import type { BuildStep } from "@/types/cms";
 import { useCms } from "@/components/cms/CmsProvider";
 import { resolveSlideTheme } from "@/lib/slide-themes";
+
+function easeOutCubic(t: number): number {
+  const clamped = Math.max(0, Math.min(1, t));
+  return 1 - Math.pow(1 - clamped, 3);
+}
 
 /** Distinct, high-contrast visual card per slide */
 function StepVisual({
@@ -146,221 +149,211 @@ function StepVisual({
 }
 
 /**
- * STICKY MULTI-SLIDE FULL-SCREEN STORY ("How I Build")
- * - Supports ANY number of slides (2, 3, 5, 12+) with zero overlap against downstream sections.
- * - Uses `refreshPriority: 10` and triggers `ScrollTrigger.refresh()` on slide count updates
- *   so `SelectedWorkReel` below always recalculates its exact Y start after pin spacers mount.
- * - Supports Default (Auto) + 12 curated studio themes via `resolveSlideTheme`.
+ * PURE CSS `position: sticky` MULTI-SLIDE FULL-SCREEN STORY ("How I Build")
+ *
+ * - Zero GSAP `pin: true` spacers -> mathematically IMPOSSIBLE to overlap `SelectedWorkReel`
+ *   even when you have 3, 5, 8, or 12+ dynamically loaded CMS slides!
+ * - Desktop (>=1024px): Full-screen sticky stage driven at native 60–120Hz via GPU `translate3d`.
+ * - Mobile (<1024px): Native CSS sticky card stack with capped top offsets.
  */
 export function HowIBuildDeck() {
   const { data } = useCms();
   const buildSteps = data.buildSteps;
-  const stageRef = useRef<HTMLDivElement>(null);
+  const desktopOuterRef = useRef<HTMLDivElement>(null);
+  const desktopStickyRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
-  const triggerRef = useRef<ScrollTrigger | null>(null);
   const lastIndexRef = useRef(0);
+  const rafRef = useRef<number | null>(null);
   const [activeIndex, setActiveIndex] = useState(0);
 
-  // Always keep ref array length synchronized with active slide count (no stale DOM nodes!)
   slideRefs.current.length = buildSteps.length;
+  const slideCount = buildSteps.length;
 
-  const slidesSignature = buildSteps.map((s, i) => `${s.id || i}:${s.accent}`).join("|");
+  const updateSlidesFromScroll = useCallback(() => {
+    rafRef.current = null;
+    const outer = desktopOuterRef.current;
+    const sticky = desktopStickyRef.current;
+    if (!outer || !sticky || slideCount < 2) return;
+    if (window.innerWidth < 1024) return;
+
+    const scrollable = Math.max(1, outer.offsetHeight - sticky.offsetHeight);
+    const rect = outer.getBoundingClientRect();
+    const rawProgress = Math.max(0, Math.min(1, -rect.top / scrollable));
+    const stageFloat = rawProgress * (slideCount - 1);
+
+    for (let i = 0; i < slideCount; i++) {
+      const el = slideRefs.current[i];
+      if (!el) continue;
+
+      if (i === 0) {
+        const exit = Math.max(0, Math.min(1, stageFloat));
+        const scale = 1 - 0.055 * exit;
+        const opacity = 1 - 0.85 * exit;
+        el.style.transform = `translate3d(0, 0%, 0) scale(${scale.toFixed(4)})`;
+        el.style.opacity = opacity.toFixed(3);
+      } else {
+        const enter = Math.max(0, Math.min(1, stageFloat - (i - 1)));
+        const exit = Math.max(0, Math.min(1, stageFloat - i));
+        const yPercent = (1 - easeOutCubic(enter)) * 102;
+        const scale = 1 - 0.055 * exit;
+        const opacity = enter <= 0.001 ? 1 : 1 - 0.85 * exit;
+        el.style.transform = `translate3d(0, ${yPercent.toFixed(2)}%, 0) scale(${scale.toFixed(4)})`;
+        el.style.opacity = opacity.toFixed(3);
+      }
+    }
+
+    const nextIdx = Math.min(slideCount - 1, Math.round(stageFloat));
+    if (nextIdx !== lastIndexRef.current) {
+      lastIndexRef.current = nextIdx;
+      setActiveIndex(nextIdx);
+    }
+  }, [slideCount]);
 
   useEffect(() => {
-    gsap.registerPlugin(ScrollTrigger);
-    lastIndexRef.current = 0;
-    setActiveIndex(0);
+    const schedule = () => {
+      if (rafRef.current === null) {
+        rafRef.current = window.requestAnimationFrame(updateSlidesFromScroll);
+      }
+    };
 
-    const mm = gsap.matchMedia();
-
-    mm.add("(min-width: 1024px) and (prefers-reduced-motion: no-preference)", () => {
-      const slides = slideRefs.current.slice(0, buildSteps.length).filter(Boolean) as HTMLDivElement[];
-      if (!stageRef.current || slides.length < 2) return;
-
-      slides.forEach((slide, i) => {
-        gsap.set(slide, {
-          yPercent: i === 0 ? 0 : 102,
-          scale: 1,
-          opacity: 1,
-          zIndex: i + 1,
-        });
-      });
-
-      const tl = gsap.timeline({
-        scrollTrigger: {
-          id: "how-i-build-deck",
-          trigger: stageRef.current,
-          pin: true,
-          pinSpacing: true,
-          refreshPriority: 10,
-          scrub: 0.14,
-          start: "top top",
-          end: () => `+=${(slides.length - 1) * window.innerHeight * 0.55}`,
-          invalidateOnRefresh: true,
-          anticipatePin: 1,
-          onUpdate: (self) => {
-            const idx = Math.min(
-              slides.length - 1,
-              Math.round(self.progress * (slides.length - 1))
-            );
-            if (idx !== lastIndexRef.current) {
-              lastIndexRef.current = idx;
-              setActiveIndex(idx);
-            }
-          },
-        },
-      });
-
-      triggerRef.current = tl.scrollTrigger || null;
-
-      slides.forEach((slide, i) => {
-        if (i === 0) {
-          tl.to({}, { duration: 0.18 });
-          return;
-        }
-        const prev = slides[i - 1];
-        tl.to(slide, {
-          yPercent: 0,
-          duration: 0.85,
-          ease: "power2.out",
-        })
-          .to(
-            prev,
-            {
-              scale: 0.94,
-              opacity: 0.15,
-              duration: 0.85,
-              ease: "power2.out",
-            },
-            "<"
-          )
-          .to({}, { duration: 0.2 });
-      });
-    });
-
-    // Force GSAP to sort & recalculate downstream pinned triggers (e.g. SelectedWorkReel)
-    const rafId = window.requestAnimationFrame(() => {
-      ScrollTrigger.sort();
-      ScrollTrigger.refresh();
-    });
+    // Initial paint position
+    updateSlidesFromScroll();
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule, { passive: true });
 
     return () => {
-      window.cancelAnimationFrame(rafId);
-      triggerRef.current = null;
-      mm.revert();
-      window.requestAnimationFrame(() => {
-        ScrollTrigger.refresh();
-      });
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+      if (rafRef.current !== null) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
     };
-  }, [buildSteps.length, slidesSignature]);
+  }, [updateSlidesFromScroll]);
 
   const jumpToSlide = (idx: number) => {
-    const safeIdx = Math.max(0, Math.min(buildSteps.length - 1, idx));
+    const safeIdx = Math.max(0, Math.min(slideCount - 1, idx));
+    lastIndexRef.current = safeIdx;
     setActiveIndex(safeIdx);
-    if (triggerRef.current && buildSteps.length > 1) {
-      const st = triggerRef.current;
-      const y = st.start + (safeIdx / (buildSteps.length - 1)) * (st.end - st.start);
-      window.scrollTo({ top: y, behavior: "smooth" });
+
+    const outer = desktopOuterRef.current;
+    const sticky = desktopStickyRef.current;
+    if (outer && sticky && slideCount > 1) {
+      const outerTop = outer.getBoundingClientRect().top + window.scrollY;
+      const scrollable = Math.max(1, outer.offsetHeight - sticky.offsetHeight);
+      const targetY = outerTop + (safeIdx / (slideCount - 1)) * scrollable;
+      window.scrollTo({ top: targetY, behavior: "smooth" });
     }
   };
 
-  const totalFormatted = String(buildSteps.length).padStart(2, "0");
-  const currentFormatted = String(Math.min(activeIndex + 1, buildSteps.length)).padStart(2, "0");
+  const totalFormatted = String(slideCount).padStart(2, "0");
+  const currentFormatted = String(Math.min(activeIndex + 1, slideCount)).padStart(2, "0");
   const firstTheme = resolveSlideTheme(buildSteps[0]?.accent, 0);
+  const desktopOuterHeightVh = 100 + Math.max(0, slideCount - 1) * 58;
 
   return (
     <section
       id="how-i-build"
       aria-label="How I Build Software and Websites"
-      className="relative z-10 isolate"
+      className="relative z-10"
     >
-      {/* DESKTOP / LAPTOP: Crisp Sticky Pinned Full-Screen Color-Coded Slides */}
+      {/* DESKTOP / LAPTOP: Pure CSS Sticky Full-Screen Color-Coded Slides (Zero Pin Overlap!) */}
       <div
-        ref={stageRef}
-        className="relative hidden lg:block h-screen w-full overflow-hidden border-y border-[var(--border-mineral)]"
-        style={{ background: firstTheme.bgStyle }}
+        ref={desktopOuterRef}
+        className="relative hidden lg:block w-full"
+        style={{ height: `${desktopOuterHeightVh}vh` }}
       >
-        {/* Minimal Clean Progress Dots Reflecting Active Slide Color */}
-        <div className="pointer-events-none absolute left-0 right-0 top-22 z-40 shell">
-          <div className="flex items-center justify-between">
-            <span className="rounded-full bg-white/90 backdrop-blur-md border border-[var(--border-mineral)] px-4 py-1.5 text-xs font-semibold text-[var(--ink-slate)] shadow-sm">
-              How I Build ·{" "}
-              <strong className="text-[var(--ink-obsidian)]">
-                {currentFormatted} / {totalFormatted}
-              </strong>
-            </span>
+        <div
+          ref={desktopStickyRef}
+          className="sticky top-0 h-screen w-full overflow-hidden border-y border-[var(--border-mineral)]"
+          style={{ background: firstTheme.bgStyle }}
+        >
+          {/* Minimal Clean Progress Dots Reflecting Active Slide Color */}
+          <div className="pointer-events-none absolute left-0 right-0 top-22 z-40 shell">
+            <div className="flex items-center justify-between">
+              <span className="rounded-full bg-white/90 backdrop-blur-md border border-[var(--border-mineral)] px-4 py-1.5 text-xs font-semibold text-[var(--ink-slate)] shadow-sm">
+                How I Build ·{" "}
+                <strong className="text-[var(--ink-obsidian)]">
+                  {currentFormatted} / {totalFormatted}
+                </strong>
+              </span>
 
-            <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-md border border-[var(--border-mineral)] px-3.5 py-2 shadow-sm">
-              {buildSteps.map((s, idx) => {
-                const dotTheme = resolveSlideTheme(s.accent, idx);
-                return (
-                  <button
-                    key={s.id || `${s.number}-${idx}`}
-                    type="button"
-                    onClick={() => jumpToSlide(idx)}
-                    aria-label={`Jump to ${s.label}`}
-                    className={`h-2.5 rounded-full transition-all duration-200 cursor-pointer ${
-                      idx === activeIndex
-                        ? dotTheme.dotActiveClass
-                        : "w-2.5 bg-[#0F171A]/20 hover:bg-[#0F171A]/45"
-                    }`}
-                  />
-                );
-              })}
+              <div className="pointer-events-auto flex items-center gap-2 rounded-full bg-white/90 backdrop-blur-md border border-[var(--border-mineral)] px-3.5 py-2 shadow-sm">
+                {buildSteps.map((s, idx) => {
+                  const dotTheme = resolveSlideTheme(s.accent, idx);
+                  return (
+                    <button
+                      key={s.id || `${s.number}-${idx}`}
+                      type="button"
+                      onClick={() => jumpToSlide(idx)}
+                      aria-label={`Jump to ${s.label}`}
+                      className={`h-2.5 rounded-full transition-all duration-200 cursor-pointer ${
+                        idx === activeIndex
+                          ? dotTheme.dotActiveClass
+                          : "w-2.5 bg-[#0F171A]/20 hover:bg-[#0F171A]/45"
+                      }`}
+                    />
+                  );
+                })}
+              </div>
             </div>
           </div>
-        </div>
 
-        {/* Full-Screen Sliding Color Chapters */}
-        <div className="relative h-full w-full">
-          {buildSteps.map((step, idx) => {
-            const theme = resolveSlideTheme(step.accent, idx);
-            return (
-              <div
-                key={step.id || `${step.number}-${idx}`}
-                ref={(el) => {
-                  slideRefs.current[idx] = el;
-                }}
-                className="absolute inset-0 flex items-center pt-16"
-                style={{ background: theme.bgStyle }}
-              >
-                <div className="shell grid grid-cols-12 gap-12 items-center">
-                  <div className="col-span-7 space-y-6">
-                    <span
-                      className={`inline-flex rounded-full px-4 py-1.5 text-xs font-bold shadow-sm ${theme.badgeClass}`}
-                    >
-                      {step.label}
-                    </span>
-
-                    <h2 className="text-h2 font-bold text-[var(--ink-obsidian)]">
-                      {step.title}{" "}
-                      <span className={`font-editorial italic font-normal ${theme.highlightClass}`}>
-                        {step.highlight}
+          {/* Full-Screen Sliding Color Chapters */}
+          <div className="relative h-full w-full">
+            {buildSteps.map((step, idx) => {
+              const theme = resolveSlideTheme(step.accent, idx);
+              return (
+                <div
+                  key={step.id || `${step.number}-${idx}`}
+                  ref={(el) => {
+                    slideRefs.current[idx] = el;
+                  }}
+                  className="absolute inset-0 flex items-center pt-16 will-change-transform"
+                  style={{
+                    background: theme.bgStyle,
+                    zIndex: idx + 1,
+                    transform: idx === 0 ? "translate3d(0, 0%, 0)" : "translate3d(0, 102%, 0)",
+                  }}
+                >
+                  <div className="shell grid grid-cols-12 gap-12 items-center">
+                    <div className="col-span-7 space-y-6">
+                      <span
+                        className={`inline-flex rounded-full px-4 py-1.5 text-xs font-bold shadow-sm ${theme.badgeClass}`}
+                      >
+                        {step.label}
                       </span>
-                    </h2>
 
-                    <p className="text-body-lg max-w-[54ch] text-[#28363B]">{step.description}</p>
+                      <h2 className="text-h2 font-bold text-[var(--ink-obsidian)]">
+                        {step.title}{" "}
+                        <span className={`font-editorial italic font-normal ${theme.highlightClass}`}>
+                          {step.highlight}
+                        </span>
+                      </h2>
 
-                    <ul className="space-y-3 pt-2">
-                      {step.points.map((point, pIdx) => (
-                        <li
-                          key={`${point}-${pIdx}`}
-                          className="flex items-start gap-3 text-[15px] font-semibold text-[var(--ink-obsidian)]"
-                        >
-                          <CheckCircle2 className={`mt-0.5 h-5 w-5 shrink-0 ${theme.checkClass}`} />
-                          <span>{point}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
+                      <p className="text-body-lg max-w-[54ch] text-[#28363B]">{step.description}</p>
 
-                  <div className="col-span-5">
-                    <StepVisual step={step} slideIndex={idx} totalSlides={buildSteps.length} />
+                      <ul className="space-y-3 pt-2">
+                        {step.points.map((point, pIdx) => (
+                          <li
+                            key={`${point}-${pIdx}`}
+                            className="flex items-start gap-3 text-[15px] font-semibold text-[var(--ink-obsidian)]"
+                          >
+                            <CheckCircle2 className={`mt-0.5 h-5 w-5 shrink-0 ${theme.checkClass}`} />
+                            <span>{point}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+
+                    <div className="col-span-5">
+                      <StepVisual step={step} slideIndex={idx} totalSlides={slideCount} />
+                    </div>
                   </div>
                 </div>
-              </div>
-            );
-          })}
+              );
+            })}
+          </div>
         </div>
       </div>
 
