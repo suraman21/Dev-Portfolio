@@ -47,10 +47,41 @@ export type ProjectMediaTone =
   | "neon"
   | "high-contrast";
 
+/** Layout width / size preset for each image in a project's multi-image showcase */
+export type ProjectGallerySize =
+  | "full"
+  | "wide"
+  | "half"
+  | "compact"
+  | "square"
+  | "tall";
+
+/** Aspect ratio preset for gallery images so any screenshot/photo renders cleanly without distortion */
+export type ProjectGalleryAspect =
+  | "auto"
+  | "21/9"
+  | "16/9"
+  | "16/10"
+  | "4/3"
+  | "1/1"
+  | "3/4"
+  | "9/16";
+
 export interface ProjectGalleryItem {
+  id?: string;
   url: string;
   alt: string;
   caption?: string;
+  /** Editorial showcase column size: full (12), wide (8), half (6), compact (4), square (6), tall (4) */
+  size?: ProjectGallerySize;
+  /** Aspect ratio / height proportion; "auto" preserves the image's exact natural dimensions */
+  aspect?: ProjectGalleryAspect;
+  /** Scaling fit inside the frame (defaults to "cover") */
+  fit?: ProjectMediaFit;
+  /** Focal point when fit === "cover" (defaults to "center") */
+  focalPoint?: ProjectMediaFocalPoint;
+  /** Optional frame style override for this specific gallery image (inherits project frameStyle if omitted) */
+  frameStyle?: ProjectMediaFrameStyle;
 }
 
 export interface ProjectMedia {

@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
+import { ArrowRight, ArrowUpRight, ChevronLeft, ChevronRight, Images } from "lucide-react";
 import { useCms } from "@/components/cms/CmsProvider";
 import { resolveProjectTheme } from "@/lib/project-theme";
+import { normalizeGalleryItems } from "@/lib/project-gallery";
 import { ProjectMediaFrame } from "@/components/ui/ProjectMediaFrame";
 import { MagneticButton } from "@/components/ui/MagneticButton";
 
@@ -285,7 +286,7 @@ export function SelectedWorkReel() {
 
                 <div className="flex w-full flex-col gap-3.5 sm:gap-5 pt-1 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-center">
                   {/* Product Image Showcase */}
-                  <div className="w-full lg:order-2 lg:col-span-6">
+                  <div className="relative w-full lg:order-2 lg:col-span-6">
                     <ProjectMediaFrame
                       media={project.media}
                       theme={project.theme}
@@ -293,6 +294,15 @@ export function SelectedWorkReel() {
                       compact
                       priority={idx === 0}
                     />
+                    {normalizeGalleryItems(project.media.gallery).length > 0 && (
+                      <Link
+                        href={`/work/${project.slug}#visual-showcase`}
+                        className="absolute right-3 bottom-3 inline-flex items-center gap-1.5 rounded-full bg-[var(--ink-obsidian)]/85 px-2.5 py-1 text-[10px] sm:text-[11px] font-semibold text-[#F7F5F0] backdrop-blur-md shadow-md hover:bg-[var(--ink-obsidian)] transition-colors"
+                      >
+                        <Images className="h-3 w-3 text-[var(--neon-teal)]" />
+                        <span>+{normalizeGalleryItems(project.media.gallery).length} more</span>
+                      </Link>
+                    )}
                   </div>
 
                   {/* Plain-English Project Summary */}
