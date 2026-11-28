@@ -9,6 +9,7 @@ const OUT_DIR = path.join(ROOT, "out");
 const PHP_BACKEND_DIR = path.join(ROOT, "php-backend");
 const DIST_DIR = path.join(ROOT, "cpanel-dist");
 const DIST_PUBLIC_DIR = path.join(DIST_DIR, "public");
+const DIST_TEMPLATES_DIR = path.join(DIST_PUBLIC_DIR, "_templates");
 const DIST_APP_DIR = path.join(DIST_DIR, "app");
 
 const PUBLIC_API_BRIDGE = `<?php
@@ -21,65 +22,72 @@ declare(strict_types=1);
 require_once dirname(__DIR__) . '/app/index.php';
 `;
 
-const PUBLIC_RENDER_BRIDGE = `<?php
+const PUBLIC_INDEX_PHP = `<?php
 declare(strict_types=1);
 
 /**
- * Server-Side Live MySQL CMS Bootstrapper for cPanel Shared Hosting
+ * Server-Side Live MySQL CMS Front Controller for cPanel Shared Hosting
  *
- * Serves every public page (/, /about, /work, /work/*, /contact) with:
- * 1. Live MySQL CMS JSON injected synchronously into window.__PORTFOLIO_CMS__
- * 2. Live <title>, <meta name="description">, and <link rel="icon"> rewritten server-side
- * 3. Cache-Control: no-store so reload / hard refresh ALWAYS shows your real Admin Panel data
- *    with ZERO flash of default demo text or default images.
+ * Because public HTML templates live in /public/_templates/ (and there is NO
+ * /public/index.html), Apache & LiteSpeed are 100% guaranteed to execute this
+ * script on every visit, reload, and hard refresh:
+ *   1. Reads the clean zero-demo-data shell template from /public/_templates/
+ *   2. Queries live MySQL via ../app/config.php + CmsRepository::getFullCms()
+ *   3. Rewrites <title>, <meta name="description">, <link rel="icon">, and preloads
+ *      your real uploaded profile image right in <head>
+ *   4. Injects window.__PORTFOLIO_CMS__ synchronously so React paints your real
+ *      Admin Panel data on frame 1 with ZERO flash of default demo data or images.
  */
 
 $rawPath = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $cleanPath = rtrim($rawPath, '/') ?: '/';
-if ($cleanPath === '/index.html') {
+if ($cleanPath === '/index.php' || $cleanPath === '/index.html') {
     $cleanPath = '/';
 } elseif (str_ends_with($cleanPath, '/index.html')) {
     $cleanPath = substr($cleanPath, 0, -11) ?: '/';
 }
 
-// Resolve static Next.js export HTML file safely (no path traversal)
+$templatesDir = __DIR__ . '/_templates';
 $statusCode = 200;
 $htmlFile = null;
 $matchedSlug = null;
 
 if ($cleanPath === '/') {
-    $htmlFile = __DIR__ . '/index.html';
+    $htmlFile = $templatesDir . '/index.html';
 } elseif ($cleanPath === '/about') {
-    $htmlFile = __DIR__ . '/about/index.html';
+    $htmlFile = $templatesDir . '/about/index.html';
 } elseif ($cleanPath === '/work') {
-    $htmlFile = __DIR__ . '/work/index.html';
+    $htmlFile = $templatesDir . '/work/index.html';
 } elseif ($cleanPath === '/contact') {
-    $htmlFile = __DIR__ . '/contact/index.html';
+    $htmlFile = $templatesDir . '/contact/index.html';
 } elseif (preg_match('#^/work/([^/]+)$#', $cleanPath, $m)) {
     $slug = rawurldecode($m[1]);
     if ($slug !== '' && !str_contains($slug, '..') && !str_contains($slug, '/') && !str_contains($slug, '\\\\')) {
         $matchedSlug = $slug;
-        $exact = __DIR__ . '/work/' . $slug . '/index.html';
-        $fallback = __DIR__ . '/work/_fallback/index.html';
+        $exact = $templatesDir . '/work/' . $slug . '/index.html';
+        $fallback = $templatesDir . '/work/_fallback/index.html';
         $htmlFile = is_file($exact) ? $exact : $fallback;
     }
 }
 
 if ($htmlFile === null || !is_file($htmlFile)) {
     $statusCode = 404;
-    $htmlFile = is_file(__DIR__ . '/404.html') ? __DIR__ . '/404.html' : (__DIR__ . '/index.html');
+    $htmlFile = is_file($templatesDir . '/404.html')
+        ? ($templatesDir . '/404.html')
+        : ($templatesDir . '/index.html');
 }
 
 $html = @file_get_contents($htmlFile);
 if ($html === false) {
     http_response_code(500);
     header('Content-Type: text/plain; charset=utf-8');
-    echo 'Unable to read site page.';
+    echo 'Unable to read site template.';
     exit;
 }
 
 // Load live CMS data directly from MySQL via ../app (graceful fallback if DB not configured yet)
 $cms = null;
+$cmsHeaderStatus = 'fallback';
 $appDir = dirname(__DIR__) . '/app';
 if (
     is_file($appDir . '/config.php') &&
@@ -93,6 +101,7 @@ if (
         $loaded = CmsRepository::getFullCms();
         if (is_array($loaded) && (!empty($loaded['site']) || !empty($loaded['projects']))) {
             $cms = $loaded;
+            $cmsHeaderStatus = 'mysql-injected';
         }
     } catch (Throwable $e) {
         $cms = null;
@@ -107,12 +116,13 @@ if (is_array($cms)) {
     $siteRole = trim((string) ($site['role'] ?? ''));
     $heroDesc = trim((string) ($site['heroDescription'] ?? ''));
     $workEyebrow = trim((string) ($site['workPageEyebrow'] ?? 'Selected Work'));
+    $profileImg = trim((string) ($site['profileImage'] ?? ''));
     $faviconUrl = trim((string) ($site['faviconUrl'] ?? '/images/favicons/code-brackets.svg'));
     if ($faviconUrl === '') {
         $faviconUrl = '/images/favicons/code-brackets.svg';
     }
 
-    // Rewrite <title> server-side so browser tabs, bookmarks, and link previews show live identity
+    // Rewrite <title> & <meta name="description"> server-side from live MySQL data
     if ($siteName !== '') {
         $pageTitle = $siteRole !== '' ? ($siteName . ' — ' . $siteRole) : $siteName;
         if ($cleanPath === '/about') {
@@ -169,19 +179,27 @@ if (is_array($cms)) {
         $html
     ) ?? $html;
 
-    // Inject live MySQL CMS payload synchronously BEFORE React boots (0ms network wait!)
-    // Uses substr_replace (NOT preg_replace) so "$" amounts like "$5,000" in JSON are never mangled.
+    // Preload real user profile image + inject live MySQL CMS synchronously into <head>
+    $headInject = '';
+    if ($profileImg !== '') {
+        $safeProfile = htmlspecialchars($profileImg, ENT_QUOTES | ENT_SUBSTITUTE, 'UTF-8');
+        $headInject .= '<link rel="preload" as="image" href="' . $safeProfile . '"/>';
+    }
+
     $encodedCms = json_encode(
         $cms,
         JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT
     );
     if (is_string($encodedCms)) {
-        $bootstrapScript = '<script id="__portfolio_cms_bootstrap__">window.__PORTFOLIO_CMS__=' . $encodedCms . ';window.__PORTFOLIO_BACKEND__="php-mysql";</script>';
+        $headInject .= '<script id="__portfolio_cms_bootstrap__">window.__PORTFOLIO_CMS__=' . $encodedCms . ';window.__PORTFOLIO_BACKEND__="php-mysql";</script>';
+    }
+
+    if ($headInject !== '') {
         $headEndPos = stripos($html, '</head>');
         if ($headEndPos !== false) {
-            $html = substr_replace($html, $bootstrapScript, $headEndPos, 0);
+            $html = substr_replace($html, $headInject, $headEndPos, 0);
         } else {
-            $html = $bootstrapScript . $html;
+            $html = $headInject . $html;
         }
     }
 }
@@ -190,43 +208,48 @@ http_response_code($statusCode);
 header('Content-Type: text/html; charset=utf-8');
 header('Cache-Control: no-store, no-cache, must-revalidate, max-age=0');
 header('Pragma: no-cache');
+header('X-LiteSpeed-Cache-Control: no-cache');
+header('X-Portfolio-CMS: ' . $cmsHeaderStatus);
 echo $html;
 `;
 
 const PUBLIC_HTACCESS = `# ============================================================================
-# Dev-Portfolio — Direct cPanel Main Domain & Subdomain Apache Rules
+# Dev-Portfolio — Direct cPanel Main Domain & Subdomain Apache/LiteSpeed Rules
 # Point your domain OR subdomain DocumentRoot directly to this /public folder!
-#   - Website URL      : https://your-domain-or-subdomain/ (server-injected live MySQL CMS)
+#   - Website URL      : https://your-domain-or-subdomain/ (via index.php + live MySQL CMS)
 #   - Admin Panel URL  : https://your-domain-or-subdomain/app
 #   - PHP + MySQL API  : /api/* -> api.php -> ../app/index.php (uses ../app/config.php)
 # ============================================================================
 
 Options -Indexes
-DirectoryIndex render.php index.html
+DirectoryIndex index.php index.html
 RewriteEngine On
 
 # 1. Enforce HTTPS automatically (uncomment once AutoSSL is active in cPanel)
 # RewriteCond %{HTTPS} !=on
 # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# 2. Never loop on PHP entrypoints
-RewriteRule ^(render|api)\\.php$ - [L]
+# 2. Block direct public access to internal HTML templates
+RewriteRule ^_templates(/.*)?$ - [F,L]
 
-# 3. Route all /api/* requests to ../app/index.php via public/api.php bridge
+# 3. Never loop on PHP entrypoints
+RewriteRule ^(index|api)\\.php$ - [L]
+
+# 4. Route all /api/* requests to ../app/index.php via public/api.php bridge
 RewriteRule ^api(/.*)?$ api.php [QSA,L]
 
-# 4. Serve /app (Admin Panel), /admin, /uploads/*, /_next/*, /images/*, and non-HTML assets directly
+# 5. Serve /app (Admin Panel), /admin, /uploads/*, /_next/*, /images/*, and static files directly
 RewriteRule ^(app|admin|uploads|_next|images)(/.*)?$ - [L]
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteCond %{REQUEST_URI} !\\.(html?)$ [NC]
 RewriteRule ^ - [L]
 
-# 5. Route ALL public HTML pages (/, /about, /work, /work/*, /contact) through render.php
+# 6. Route ALL public HTML pages (/, /about, /work, /work/*, /contact) through index.php
 #    so live MySQL CMS data, <title>, <meta>, and favicon are injected SERVER-SIDE
 #    (ZERO flash of default demo data on first visit, reload, or hard refresh!)
-RewriteRule ^ render.php [QSA,L]
+RewriteRule ^ index.php [QSA,L]
 
-# 6. Performance caching for immutable Next.js static assets
+# 7. Performance caching for immutable Next.js static assets
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType text/css "access plus 1 year"
@@ -273,6 +296,40 @@ function copyRecursive(src, dest) {
   }
 }
 
+/**
+ * Moves exported public HTML shells into `/public/_templates/` so Apache/LiteSpeed
+ * can NEVER bypass `/public/index.php` by serving a static `index.html` directly.
+ * Keeps `/public/app/` and `/public/admin/` HTML files untouched.
+ */
+function relocatePublicHtmlToTemplates(dir, relBase = "") {
+  if (!fs.existsSync(dir)) return;
+  for (const entry of fs.readdirSync(dir)) {
+    const relPath = relBase ? `${relBase}/${entry}` : entry;
+    const fullPath = path.join(dir, entry);
+    const stat = fs.statSync(fullPath);
+
+    // Keep Admin Panel, redirects, internal assets, uploads, and templates themselves intact
+    if (
+      relPath === "app" ||
+      relPath === "admin" ||
+      relPath === "_next" ||
+      relPath === "images" ||
+      relPath === "uploads" ||
+      relPath === "_templates"
+    ) {
+      continue;
+    }
+
+    if (stat.isDirectory()) {
+      relocatePublicHtmlToTemplates(fullPath, relPath);
+    } else if (entry.endsWith(".html")) {
+      const destPath = path.join(DIST_TEMPLATES_DIR, relPath);
+      fs.mkdirSync(path.dirname(destPath), { recursive: true });
+      fs.renameSync(fullPath, destPath);
+    }
+  }
+}
+
 console.log("==> Building cPanel /public (website) + /app (admin panel & PHP/MySQL) bundle...");
 
 let movedApi = false;
@@ -302,10 +359,11 @@ try {
     throw new Error("Expected Next.js static export directory `out/` was not created.");
   }
 
-  // 1. `/public` = Complete Website + `/app` Admin Panel UI + Server-Side Live CMS Renderer
+  // 1. `/public` = Static assets + `/app` Admin Panel UI + `/_templates` + `index.php` live MySQL renderer
   copyRecursive(OUT_DIR, DIST_PUBLIC_DIR);
+  relocatePublicHtmlToTemplates(DIST_PUBLIC_DIR);
   fs.writeFileSync(path.join(DIST_PUBLIC_DIR, "api.php"), PUBLIC_API_BRIDGE, "utf8");
-  fs.writeFileSync(path.join(DIST_PUBLIC_DIR, "render.php"), PUBLIC_RENDER_BRIDGE, "utf8");
+  fs.writeFileSync(path.join(DIST_PUBLIC_DIR, "index.php"), PUBLIC_INDEX_PHP, "utf8");
   fs.writeFileSync(path.join(DIST_PUBLIC_DIR, ".htaccess"), PUBLIC_HTACCESS, "utf8");
 
   // 2. `/public/uploads` = Writable media upload directory with hardened .htaccess
@@ -324,9 +382,9 @@ try {
   fs.writeFileSync(path.join(DIST_DIR, ".gitignore"), CPANEL_GITIGNORE, "utf8");
 
   console.log("\n✅ cPanel bundle ready at ./cpanel-dist/");
-  console.log("   - ./cpanel-dist/public/  -> Point your domain or subdomain DocumentRoot here!");
-  console.log("   - ./cpanel-dist/public/render.php -> Server-side live MySQL CMS bootstrapper (0ms default flash!)");
-  console.log("   - ./cpanel-dist/app/     -> Admin Panel PHP/MySQL backend + app/config.example.php");
+  console.log("   - ./cpanel-dist/public/index.php    -> Server-side live MySQL CMS front controller (0ms default flash!)");
+  console.log("   - ./cpanel-dist/public/_templates/  -> Clean zero-demo-data HTML shells");
+  console.log("   - ./cpanel-dist/app/                -> Admin Panel PHP/MySQL backend + app/config.example.php");
 } finally {
   if (movedApi && fs.existsSync(TEMP_API_DIR)) {
     fs.renameSync(TEMP_API_DIR, APP_API_DIR);

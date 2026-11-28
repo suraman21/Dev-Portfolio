@@ -23,10 +23,11 @@ function inferIconMimeType(url: string): string | null {
  */
 export function SiteHeadSync() {
   const pathname = usePathname() || "/";
-  const { data } = useCms();
+  const { data, ready } = useCms();
   const { site, projects } = data;
 
   useEffect(() => {
+    if (!ready) return;
     const cleanPath = pathname.replace(/\/+$/, "") || "/";
     let pageTitle = `${site.name} — ${site.role}`;
 
@@ -78,6 +79,7 @@ export function SiteHeadSync() {
       });
     }
   }, [
+    ready,
     pathname,
     site.name,
     site.role,
