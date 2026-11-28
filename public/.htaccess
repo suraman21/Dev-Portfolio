@@ -1,37 +1,40 @@
 # ============================================================================
-# Dev-Portfolio — Direct cPanel Main Domain & Subdomain Apache Rules
+# Dev-Portfolio — Direct cPanel Main Domain & Subdomain Apache/LiteSpeed Rules
 # Point your domain OR subdomain DocumentRoot directly to this /public folder!
-#   - Website URL      : https://your-domain-or-subdomain/ (server-injected live MySQL CMS)
+#   - Website URL      : https://your-domain-or-subdomain/ (via index.php + live MySQL CMS)
 #   - Admin Panel URL  : https://your-domain-or-subdomain/app
 #   - PHP + MySQL API  : /api/* -> api.php -> ../app/index.php (uses ../app/config.php)
 # ============================================================================
 
 Options -Indexes
-DirectoryIndex render.php index.html
+DirectoryIndex index.php index.html
 RewriteEngine On
 
 # 1. Enforce HTTPS automatically (uncomment once AutoSSL is active in cPanel)
 # RewriteCond %{HTTPS} !=on
 # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-# 2. Never loop on PHP entrypoints
-RewriteRule ^(render|api)\.php$ - [L]
+# 2. Block direct public access to internal HTML templates
+RewriteRule ^_templates(/.*)?$ - [F,L]
 
-# 3. Route all /api/* requests to ../app/index.php via public/api.php bridge
+# 3. Never loop on PHP entrypoints
+RewriteRule ^(index|api)\.php$ - [L]
+
+# 4. Route all /api/* requests to ../app/index.php via public/api.php bridge
 RewriteRule ^api(/.*)?$ api.php [QSA,L]
 
-# 4. Serve /app (Admin Panel), /admin, /uploads/*, /_next/*, /images/*, and non-HTML assets directly
+# 5. Serve /app (Admin Panel), /admin, /uploads/*, /_next/*, /images/*, and static files directly
 RewriteRule ^(app|admin|uploads|_next|images)(/.*)?$ - [L]
 RewriteCond %{REQUEST_FILENAME} -f
 RewriteCond %{REQUEST_URI} !\.(html?)$ [NC]
 RewriteRule ^ - [L]
 
-# 5. Route ALL public HTML pages (/, /about, /work, /work/*, /contact) through render.php
+# 6. Route ALL public HTML pages (/, /about, /work, /work/*, /contact) through index.php
 #    so live MySQL CMS data, <title>, <meta>, and favicon are injected SERVER-SIDE
 #    (ZERO flash of default demo data on first visit, reload, or hard refresh!)
-RewriteRule ^ render.php [QSA,L]
+RewriteRule ^ index.php [QSA,L]
 
-# 6. Performance caching for immutable Next.js static assets
+# 7. Performance caching for immutable Next.js static assets
 <IfModule mod_expires.c>
   ExpiresActive On
   ExpiresByType text/css "access plus 1 year"
