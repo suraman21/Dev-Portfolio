@@ -32,6 +32,7 @@ import {
   resolveProjectTheme,
 } from "@/lib/project-theme";
 import { ProjectMediaFrame } from "@/components/ui/ProjectMediaFrame";
+import { AdminProjectGalleryEditor } from "@/components/admin/AdminProjectGalleryEditor";
 
 interface AdminProjectsTabProps {
   projects: Project[];
@@ -191,6 +192,38 @@ export function AdminProjectsTab({
     }
   };
 
+  const handlePromoteGalleryToCover = (galleryIdx: number) => {
+    if (!active) return;
+    const currentGallery = [...(active.media.gallery || [])];
+    const picked = currentGallery[galleryIdx];
+    if (!picked || !picked.url) return;
+
+    const previousCoverItem = {
+      id: `gal-${Date.now()}-prev-cover`,
+      url: active.media.coverImage,
+      alt: active.media.alt || active.title,
+      caption: active.media.caption || "",
+      size: picked.size || ("half" as const),
+      aspect: picked.aspect || ("16/10" as const),
+      fit: active.media.fit,
+      focalPoint: active.media.focalPoint,
+    };
+
+    currentGallery[galleryIdx] = previousCoverItem;
+
+    updateProject({
+      media: {
+        ...active.media,
+        coverImage: picked.url,
+        alt: picked.alt || active.title,
+        caption: picked.caption || active.media.caption,
+        fit: picked.fit || active.media.fit,
+        focalPoint: picked.focalPoint || active.media.focalPoint,
+        gallery: currentGallery,
+      },
+    });
+  };
+
   const resolvedPreview = active ? resolveProjectTheme(active.theme) : null;
 
   return (
@@ -252,6 +285,9 @@ export function AdminProjectsTab({
                     </div>
                     <div className="mt-0.5 text-[11px] text-[var(--ink-muted)] truncate">
                       {p.category} · /{p.slug}
+                      {p.media.gallery && p.media.gallery.length > 0
+                        ? ` · ${p.media.gallery.length + 1} imgs`
+                        : ""}
                     </div>
                   </div>
                 </div>
@@ -605,7 +641,33 @@ export function AdminProjectsTab({
                 </select>
               </div>
             </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[var(--ink-slate)] mb-1">
+                Cover Image Caption (Optional)
+              </label>
+              <input
+                value={active.media.caption || ""}
+                onChange={(e) =>
+                  updateProject({ media: { ...active.media, caption: e.target.value } })
+                }
+                placeholder="Short caption displayed below the hero cover image"
+                className="w-full rounded-xl border border-[var(--border-mineral)] bg-[var(--bg-alabaster)] px-3.5 py-2.5 text-sm"
+              />
+            </div>
           </div>
+
+          {/* 1B. MULTI-IMAGE CASE STUDY GALLERY WITH MULTIPLE SIZES */}
+          <AdminProjectGalleryEditor
+            projectTitle={active.title}
+            gallery={active.media.gallery || []}
+            mediaLibrary={mediaLibrary}
+            onChange={(nextGallery) =>
+              updateProject({ media: { ...active.media, gallery: nextGallery } })
+            }
+            onPromoteToCover={handlePromoteGalleryToCover}
+            onUploadImage={onUploadImage}
+          />
 
           {/* 2. DYNAMIC THEME & COLOR STUDIO */}
           <div className="rounded-3xl border border-[var(--border-mineral)] bg-white p-6 space-y-4">

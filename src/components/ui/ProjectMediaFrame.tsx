@@ -12,6 +12,8 @@ interface ProjectMediaFrameProps {
   compact?: boolean;
   /** Load immediately for above-the-fold hero case study views */
   priority?: boolean;
+  /** Optional aspect ratio class (e.g. "aspect-video", "aspect-[3/4]", or "auto" for natural dimensions) */
+  aspectClass?: string;
   className?: string;
 }
 
@@ -145,20 +147,26 @@ export function ProjectMediaFrame({
   title,
   compact = false,
   priority = false,
+  aspectClass = "aspect-[16/10]",
   className = "",
 }: ProjectMediaFrameProps) {
-  const [imgFailed, setImgFailed] = useState(false);
+  const [failedSrc, setFailedSrc] = useState<string | null>(null);
+  const imgFailed = failedSrc === media.coverImage;
   const resolved = resolveProjectTheme(theme);
 
   const tone = TONE_CONFIGS[media.surfaceTone] || TONE_CONFIGS.default;
   const frameStyle = media.frameStyle || "default";
+  const isAutoAspect = aspectClass === "auto";
   const fitClass = media.fit === "contain" ? "object-contain" : "object-cover";
   const focalClass = FOCAL_CLASSES[media.focalPoint] || "object-center";
   const slugLabel = `${title.toLowerCase().replace(/\s+/g, "-")}.app`;
+  const viewportAspect = isAutoAspect ? "" : aspectClass;
 
   const imageElement = imgFailed ? (
     <div
-      className="flex h-full w-full flex-col items-center justify-center gap-2 p-6 text-center"
+      className={`flex w-full flex-col items-center justify-center gap-2 p-6 text-center ${
+        isAutoAspect ? "min-h-[220px]" : "h-full"
+      }`}
       style={{ background: resolved.cardBg }}
     >
       <span
@@ -177,9 +185,13 @@ export function ProjectMediaFrame({
       alt={media.alt}
       loading={priority ? "eager" : "lazy"}
       decoding={priority ? "sync" : "async"}
-      onError={() => setImgFailed(true)}
+      onError={() => setFailedSrc(media.coverImage)}
       style={tone.imgFilter ? { filter: tone.imgFilter } : undefined}
-      className={`h-full w-full ${fitClass} ${focalClass} select-none transition-transform duration-500 ease-out group-hover/media:scale-[1.02]`}
+      className={
+        isAutoAspect
+          ? "block w-full h-auto select-none transition-transform duration-500 ease-out group-hover/media:scale-[1.015]"
+          : `h-full w-full ${fitClass} ${focalClass} select-none transition-transform duration-500 ease-out group-hover/media:scale-[1.02]`
+      }
     />
   );
 
@@ -217,7 +229,7 @@ export function ProjectMediaFrame({
           <span className="w-6" aria-hidden="true" />
         </div>
 
-        <div className="relative aspect-[16/10] w-full overflow-hidden" style={{ backgroundColor: tone.canvasBg }}>
+        <div className={`relative ${viewportAspect} w-full overflow-hidden`} style={{ backgroundColor: tone.canvasBg }}>
           {imageElement}
         </div>
       </div>
@@ -242,7 +254,7 @@ export function ProjectMediaFrame({
             LIVE
           </span>
         </div>
-        <div className="relative aspect-[16/10] w-full overflow-hidden" style={{ backgroundColor: tone.canvasBg }}>
+        <div className={`relative ${viewportAspect} w-full overflow-hidden`} style={{ backgroundColor: tone.canvasBg }}>
           {imageElement}
         </div>
       </div>
@@ -256,7 +268,7 @@ export function ProjectMediaFrame({
         <div className="overflow-hidden rounded-t-[18px] sm:rounded-t-[22px] rounded-b-[6px] border-[5px] sm:border-[7px] border-[#141D21] bg-[#141D21] shadow-[0_22px_48px_-20px_rgba(15,23,26,0.42)]">
           <div className="mx-auto mb-1 h-1 w-8 rounded-full bg-white/15" />
           <div
-            className="relative aspect-[16/10] w-full overflow-hidden rounded-[8px]"
+            className={`relative ${viewportAspect} w-full overflow-hidden rounded-[8px]`}
             style={{ backgroundColor: tone.canvasBg }}
           >
             {imageElement}
@@ -280,7 +292,7 @@ export function ProjectMediaFrame({
         }}
       >
         <div
-          className="relative aspect-[16/10] w-full overflow-hidden rounded-[14px] sm:rounded-[16px] border border-black/8 shadow-[0_14px_34px_-16px_rgba(15,23,26,0.22)]"
+          className={`relative ${viewportAspect} w-full overflow-hidden rounded-[14px] sm:rounded-[16px] border border-black/8 shadow-[0_14px_34px_-16px_rgba(15,23,26,0.22)]`}
           style={{ backgroundColor: tone.canvasBg }}
         >
           {imageElement}
@@ -299,7 +311,7 @@ export function ProjectMediaFrame({
           boxShadow: resolved.cardShadow,
         }}
       >
-        <div className="relative aspect-[16/10] w-full overflow-hidden" style={{ backgroundColor: tone.canvasBg }}>
+        <div className={`relative ${viewportAspect} w-full overflow-hidden`} style={{ backgroundColor: tone.canvasBg }}>
           {imageElement}
         </div>
       </div>
@@ -315,7 +327,7 @@ export function ProjectMediaFrame({
         } shadow-[0_16px_40px_-20px_rgba(15,23,26,0.2)] ${className}`}
       >
         <div
-          className="relative aspect-[16/10] w-full overflow-hidden rounded-[14px] border border-[var(--ink-obsidian)]/15"
+          className={`relative ${viewportAspect} w-full overflow-hidden rounded-[14px] border border-[var(--ink-obsidian)]/15`}
           style={{ backgroundColor: tone.canvasBg }}
         >
           {imageElement}
@@ -333,7 +345,7 @@ export function ProjectMediaFrame({
         } shadow-[0_20px_50px_-22px_rgba(15,23,26,0.24)] ${className}`}
       >
         <div
-          className="relative aspect-[16/10] w-full overflow-hidden rounded-[15px] ring-1 ring-black/8"
+          className={`relative ${viewportAspect} w-full overflow-hidden rounded-[15px] ring-1 ring-black/8`}
           style={{ backgroundColor: tone.canvasBg }}
         >
           {imageElement}
@@ -351,7 +363,7 @@ export function ProjectMediaFrame({
         } shadow-[0_20px_48px_-20px_rgba(15,23,26,0.28)] ${className}`}
       >
         <div
-          className="relative aspect-[16/10] w-full overflow-hidden rounded-[10px]"
+          className={`relative ${viewportAspect} w-full overflow-hidden rounded-[10px]`}
           style={{ backgroundColor: tone.canvasBg }}
         >
           {imageElement}
@@ -375,7 +387,7 @@ export function ProjectMediaFrame({
         } ${className}`}
       >
         <div
-          className="relative aspect-[16/10] w-full overflow-hidden rounded-[12px] border border-[#0284C7]/35"
+          className={`relative ${viewportAspect} w-full overflow-hidden rounded-[12px] border border-[#0284C7]/35`}
           style={{ backgroundColor: tone.canvasBg }}
         >
           {imageElement}
@@ -392,7 +404,7 @@ export function ProjectMediaFrame({
         style={{ background: resolved.topBarGradient }}
       >
         <div
-          className="relative aspect-[16/10] w-full overflow-hidden rounded-[20px]"
+          className={`relative ${viewportAspect} w-full overflow-hidden rounded-[20px]`}
           style={{ backgroundColor: tone.canvasBg }}
         >
           {imageElement}
@@ -410,7 +422,7 @@ export function ProjectMediaFrame({
         } shadow-[0_28px_60px_-18px_rgba(15,23,26,0.55)] ${className}`}
       >
         <div
-          className="relative aspect-[16/10] w-full overflow-hidden rounded-[13px] ring-1 ring-white/15"
+          className={`relative ${viewportAspect} w-full overflow-hidden rounded-[13px] ring-1 ring-white/15`}
           style={{ backgroundColor: tone.canvasBg }}
         >
           {imageElement}
@@ -425,7 +437,7 @@ export function ProjectMediaFrame({
       className={`group/media relative w-full overflow-hidden rounded-[20px] sm:rounded-[24px] shadow-[0_20px_50px_-22px_rgba(15,23,26,0.28)] ring-1 ring-inset ring-black/10 ${className}`}
       style={{ backgroundColor: tone.canvasBg }}
     >
-      <div className="relative aspect-[16/10] w-full overflow-hidden">{imageElement}</div>
+      <div className={`relative ${viewportAspect} w-full overflow-hidden`}>{imageElement}</div>
     </div>
   );
 }

@@ -3,10 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, Images } from "lucide-react";
 import type { ProjectCategory } from "@/types/cms";
 import { useCms } from "@/components/cms/CmsProvider";
 import { resolveProjectTheme } from "@/lib/project-theme";
+import { normalizeGalleryItems } from "@/lib/project-gallery";
 import { ProjectMediaFrame } from "@/components/ui/ProjectMediaFrame";
 
 const categories: ("All" | ProjectCategory)[] = [
@@ -92,13 +93,24 @@ export default function WorkPage() {
 
                   <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-9 items-center pt-1">
                     {/* Media First on Mobile, Right on Desktop */}
-                    <div className="lg:order-2 lg:col-span-6">
+                    <div className="relative lg:order-2 lg:col-span-6">
                       <ProjectMediaFrame
                         media={project.media}
                         theme={project.theme}
                         title={project.title}
                         priority={idx === 0}
                       />
+                      {normalizeGalleryItems(project.media.gallery).length > 0 && (
+                        <Link
+                          href={`/work/${project.slug}#visual-showcase`}
+                          className="absolute right-3.5 bottom-3.5 inline-flex items-center gap-1.5 rounded-full bg-[var(--ink-obsidian)]/85 px-3 py-1 text-[11px] font-semibold text-[#F7F5F0] backdrop-blur-md shadow-md hover:bg-[var(--ink-obsidian)] transition-colors"
+                        >
+                          <Images className="h-3.5 w-3.5 text-[var(--neon-teal)]" />
+                          <span>
+                            {normalizeGalleryItems(project.media.gallery).length + 1} visuals
+                          </span>
+                        </Link>
+                      )}
                     </div>
 
                     <div className="lg:order-1 lg:col-span-6 space-y-4 sm:space-y-5">
